@@ -1,0 +1,1299 @@
+[
+  {
+    "id": "amazon_da",
+    "company": "Amazon",
+    "role": "Business Analyst",
+    "source": "Aggregated Industry Data",
+    "description": "Amazon looks for strong technical skills. Expect Leadership Principles, SQL. **Hard Mode Enabled**.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Resume walkthrough.",
+        "key_focus": "Fit",
+        "practice_question": "Why Amazon?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Live Coding Challenges (Hard).",
+        "key_focus": "Execution",
+        "challenges": [
+          {
+            "title": "Monthly Percentage Difference (Stratascratch ID 10319)",
+            "difficulty": "Hard",
+            "type": "sql",
+            "question": "Given a table of purchases, calculate the month-over-month percentage change in revenue. The output should include the year-month date (YYYY-MM) and percentage change, rounded to the 2nd decimal spot, and sorted from the beginning of the year to the end of the year.",
+            "tables": [
+              "sf_transactions"
+            ],
+            "initial_code": "SELECT * FROM sf_transactions LIMIT 5;",
+            "solution": "\nWITH monthly_revenue AS (\n    SELECT \n        strftime('%Y-%m', created_at) as ym, \n        SUM(value) as revenue \n    FROM sf_transactions \n    GROUP BY 1\n),\nlagged_revenue AS (\n    SELECT \n        ym, \n        revenue, \n        LAG(revenue) OVER (ORDER BY ym) as prev_month_revenue \n    FROM monthly_revenue\n)\nSELECT \n    ym, \n    ROUND((revenue - prev_month_revenue) * 100.0 / prev_month_revenue, 2) as retention_rate \nFROM lagged_revenue\nORDER BY ym;\n"
+          }
+        ],
+        "question_type": "code_challenges"
+      },
+      {
+        "step": 3,
+        "name": "Onsite Loop",
+        "duration": "4 hrs",
+        "description": "Multiple rounds.",
+        "key_focus": "Depth",
+        "practice_question": "Tell me about a complex project.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "google_da",
+    "company": "Google",
+    "role": "Data Analyst",
+    "source": "Aggregated Industry Data",
+    "description": "Google looks for strong technical skills. Expect Product Sense, SQL. **Hard Mode Enabled**.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Resume walkthrough.",
+        "key_focus": "Fit",
+        "practice_question": "Why Google?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Live Coding Challenges (Hard).",
+        "key_focus": "Execution",
+        "challenges": [
+          {
+            "title": "Activity Rank (Stratascratch ID 10351)",
+            "difficulty": "Hard",
+            "type": "sql",
+            "question": "Find the email activity rank for each user. Email activity is the total number of emails sent. The user with the highest number of emails sent will have a rank of 1, and so on. Output the user, total emails, and their activity rank. Order records by the total emails in descending order. Sort users with the same number of emails in alphabetical order. In your rankings, return a unique value (i.e., a unique rank) even if multiple users have the same number of emails.",
+            "tables": [
+              "google_gmail_emails"
+            ],
+            "initial_code": "SELECT * FROM google_gmail_emails LIMIT 5;",
+            "solution": "\nSELECT \n    from_user, \n    COUNT(*) as total_emails,\n    ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC, from_user ASC) as rnk\nFROM google_gmail_emails\nGROUP BY from_user\n"
+          }
+        ],
+        "question_type": "code_challenges"
+      },
+      {
+        "step": 3,
+        "name": "Onsite Loop",
+        "duration": "4 hrs",
+        "description": "Multiple rounds.",
+        "key_focus": "Depth",
+        "practice_question": "Tell me about a complex project.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "facebook_(meta)_da",
+    "company": "Facebook (Meta)",
+    "role": "Data Scientist",
+    "source": "Aggregated Industry Data",
+    "description": "Facebook (Meta) looks for strong technical skills. Expect SQL, Product Metrics. **Hard Mode Enabled**.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Resume walkthrough.",
+        "key_focus": "Fit",
+        "practice_question": "Why Facebook (Meta)?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Live Coding Challenges (Hard).",
+        "key_focus": "Execution",
+        "challenges": [
+          {
+            "title": "Popularity Percentage (Stratascratch ID 10284)",
+            "difficulty": "Hard",
+            "type": "sql",
+            "question": "Find the popularity percentage for each user on Meta/Facebook. The popularity percentage is defined as the total number of friends the user has divided by the total number of users on the platform, then multiplied by 100. Output each user along with their popularity percentage. Order records in ascending order by user ID.",
+            "tables": [
+              "facebook_friends"
+            ],
+            "initial_code": "SELECT * FROM facebook_friends LIMIT 5;",
+            "solution": "\nWITH all_friends AS (\n    SELECT user1 as user_id, user2 as friend_id FROM facebook_friends\n    UNION ALL\n    SELECT user2 as user_id, user1 as friend_id FROM facebook_friends\n),\ntotal_users AS (\n    SELECT COUNT(DISTINCT user_id) as cnt FROM all_friends\n)\nSELECT \n    user_id, \n    COUNT(friend_id) * 100.0 / (SELECT cnt FROM total_users) as popularity_percent\nFROM all_friends\nGROUP BY user_id\nORDER BY user_id\n"
+          }
+        ],
+        "question_type": "code_challenges"
+      },
+      {
+        "step": 3,
+        "name": "Onsite Loop",
+        "duration": "4 hrs",
+        "description": "Multiple rounds.",
+        "key_focus": "Depth",
+        "practice_question": "Tell me about a complex project.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "microsoft_da",
+    "company": "Microsoft",
+    "role": "Data Analyst",
+    "source": "Aggregated Industry Data",
+    "description": "Microsoft looks for strong technical skills. Expect SQL, Power BI. **Hard Mode Enabled**.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Resume walkthrough.",
+        "key_focus": "Fit",
+        "practice_question": "Why Microsoft?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Live Coding Challenges (Hard).",
+        "key_focus": "Execution",
+        "challenges": [
+          {
+            "title": "Premium vs Freemium (Stratascratch ID 10300)",
+            "difficulty": "Hard",
+            "type": "sql",
+            "question": "Find the total number of downloads for paying and non-paying users by date. Include only records where non-paying customers have more downloads than paying customers. The output should be sorted by earliest date first and contain 3 columns: date, non-paying downloads, paying downloads.",
+            "tables": [
+              "ms_user_dimension",
+              "ms_acc_dimension",
+              "ms_download_facts"
+            ],
+            "initial_code": "SELECT * FROM ms_download_facts LIMIT 5;",
+            "solution": "\nWITH joined AS (\n    SELECT \n        d.date,\n        d.downloads,\n        a.paying_customer\n    FROM ms_download_facts d\n    JOIN ms_user_dimension u ON d.user_id = u.user_id\n    JOIN ms_acc_dimension a ON u.acc_id = a.acc_id\n)\nSELECT \n    date,\n    SUM(CASE WHEN paying_customer = 'no' THEN downloads ELSE 0 END) as non_paying,\n    SUM(CASE WHEN paying_customer = 'yes' THEN downloads ELSE 0 END) as paying\nFROM joined\nGROUP BY date\nHAVING SUM(CASE WHEN paying_customer = 'no' THEN downloads ELSE 0 END) > SUM(CASE WHEN paying_customer = 'yes' THEN downloads ELSE 0 END)\nORDER BY date\n"
+          }
+        ],
+        "question_type": "code_challenges"
+      },
+      {
+        "step": 3,
+        "name": "Onsite Loop",
+        "duration": "4 hrs",
+        "description": "Multiple rounds.",
+        "key_focus": "Depth",
+        "practice_question": "Tell me about a complex project.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "airbnb_da",
+    "company": "Airbnb",
+    "role": "Data Scientist",
+    "source": "Aggregated Industry Data",
+    "description": "Airbnb looks for strong technical skills. Expect Booking Funnel, Experimentation. **Hard Mode Enabled**.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Resume walkthrough.",
+        "key_focus": "Fit",
+        "practice_question": "Why Airbnb?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Live Coding Challenges (Hard).",
+        "key_focus": "Execution",
+        "challenges": [
+          {
+            "title": "Growth of Airbnb (Stratascratch ID 9637)",
+            "difficulty": "Hard",
+            "type": "sql",
+            "question": "Estimate the growth of Airbnb each year using the number of hosts registered as the growth metric. The rate of growth is calculated by taking ((number of hosts registered in the current year - number of hosts registered in the previous year) / number of hosts registered in the previous year) * 100. Output the year, number of hosts, and growth rate. Round the rate to the nearest percentage and order by year ASC.",
+            "tables": [
+              "airbnb_hosts"
+            ],
+            "initial_code": "SELECT * FROM airbnb_hosts LIMIT 5;",
+            "solution": "\nWITH yearly_hosts AS (\n    SELECT \n        CAST(strftime('%Y', joined_date) AS INT) as year,\n        COUNT(host_id) as current_year_hosts\n    FROM airbnb_hosts\n    GROUP BY 1\n),\nlagged AS (\n    SELECT \n        year, \n        current_year_hosts, \n        LAG(current_year_hosts) OVER (ORDER BY year) as prev_year_hosts\n    FROM yearly_hosts\n)\nSELECT \n    year, \n    current_year_hosts, \n    ROUND((current_year_hosts - prev_year_hosts) * 100.0 / prev_year_hosts, 0) as growth_rate\nFROM lagged\nORDER BY year\n"
+          }
+        ],
+        "question_type": "code_challenges"
+      },
+      {
+        "step": 3,
+        "name": "Onsite Loop",
+        "duration": "4 hrs",
+        "description": "Multiple rounds.",
+        "key_focus": "Depth",
+        "practice_question": "Tell me about a complex project.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "uber_da",
+    "company": "Uber",
+    "role": "Data Analyst",
+    "source": "Aggregated Industry Data",
+    "description": "Uber looks for strong technical skills. Expect Marketplace Dynamics. **Hard Mode Enabled**.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Resume walkthrough.",
+        "key_focus": "Fit",
+        "practice_question": "Why Uber?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Live Coding Challenges (Hard).",
+        "key_focus": "Execution",
+        "challenges": [
+          {
+            "title": "Naive Forecasting (Stratascratch ID 10313)",
+            "difficulty": "Hard",
+            "type": "sql",
+            "question": "Some forecasting methods are extremely simple and surprisingly effective. Naive forecast is one of them; we simply set all forecasts to be the value of the last observation. Our goal is to develop a naive forecast for a new metric called 'distance per dollar' defined as the (distance_to_travel/monetary_cost) in our dataset and measure its accuracy. To develop this forecast, sum 'distance to travel' and 'monetary cost' values at a monthly level before calculating 'distance per dollar'. This value becomes your actual value for the current month. The next step is to populate the forecasted value for each month. This can be achieved simply by getting the previous month's value in a separate column. Now, we have actual and forecasted values. This is your output.",
+            "tables": [
+              "uber_request_data"
+            ],
+            "solution": "\nWITH monthly_metrics AS (\n    SELECT \n        strftime('%Y-%m', request_date) as ym,\n        SUM(distance_to_travel) as total_dist,\n        SUM(monetary_cost) as total_cost\n    FROM uber_request_data\n    GROUP BY 1\n),\nactuals AS (\n    SELECT \n        ym, \n        ROUND(total_dist / total_cost, 2) as actual_value\n    FROM monthly_metrics\n)\nSELECT \n    ym, \n    actual_value,\n    LAG(actual_value) OVER (ORDER BY ym) as forecast\nFROM actuals\nORDER BY ym\n"
+          }
+        ],
+        "question_type": "code_challenges"
+      },
+      {
+        "step": 3,
+        "name": "Onsite Loop",
+        "duration": "4 hrs",
+        "description": "Multiple rounds.",
+        "key_focus": "Depth",
+        "practice_question": "Tell me about a complex project.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "stripe_da",
+    "company": "Stripe",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Stripe values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Stripe?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Stripe metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "uber_da",
+    "company": "Uber",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Uber values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Uber?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Uber metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "airbnb_da",
+    "company": "Airbnb",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Airbnb values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Airbnb?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Airbnb metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "databricks_da",
+    "company": "Databricks",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Databricks values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Databricks?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Databricks metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "snowflake_da",
+    "company": "Snowflake",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Snowflake values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Snowflake?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Snowflake metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "palantir_da",
+    "company": "Palantir",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Palantir values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Palantir?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Palantir metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "doordash_da",
+    "company": "DoorDash",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "DoorDash values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why DoorDash?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for DoorDash metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "spotify_da",
+    "company": "Spotify",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Spotify values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Spotify?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Spotify metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "shopify_da",
+    "company": "Shopify",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Shopify values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Shopify?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Shopify metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "slack_da",
+    "company": "Slack",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Slack values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Slack?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Slack metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "zoom_da",
+    "company": "Zoom",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Zoom values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Zoom?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Zoom metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "pinterest_da",
+    "company": "Pinterest",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Pinterest values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Pinterest?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Pinterest metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "snap_da",
+    "company": "Snap",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Snap values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Snap?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Snap metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "tiktok_da",
+    "company": "TikTok",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "TikTok values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why TikTok?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for TikTok metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "dropbox_da",
+    "company": "Dropbox",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Dropbox values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Dropbox?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Dropbox metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "salesforce_da",
+    "company": "Salesforce",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Salesforce values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Salesforce?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Salesforce metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "oracle_da",
+    "company": "Oracle",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Oracle values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Oracle?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Oracle metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "microsoft_da",
+    "company": "Microsoft",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Microsoft values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Microsoft?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Microsoft metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "apple_da",
+    "company": "Apple",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Apple values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Apple?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Apple metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "linkedin_da",
+    "company": "LinkedIn",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "LinkedIn values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why LinkedIn?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for LinkedIn metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  },
+  {
+    "id": "twitter_(x)_da",
+    "company": "Twitter (X)",
+    "role": "Data Analyst",
+    "source": "Aggregated",
+    "description": "Twitter (X) values speed and execution.",
+    "process_steps": [
+      {
+        "step": 1,
+        "name": "Recruiter Screen",
+        "duration": "30m",
+        "description": "Intro.",
+        "key_focus": "Interest",
+        "practice_question": "Why Twitter (X)?",
+        "question_type": "text"
+      },
+      {
+        "step": 2,
+        "name": "Technical Screen",
+        "duration": "60m",
+        "description": "Practical data task.",
+        "key_focus": "Execution",
+        "question_type": "code_challenges",
+        "challenges": [
+          {
+            "title": "Analysis Task",
+            "difficulty": "Medium",
+            "type": "sql",
+            "question": "Analyze `user_actions` for Twitter (X) metrics.",
+            "tables": [
+              "user_actions"
+            ],
+            "initial_code": "SELECT * FROM user_actions;",
+            "solution": "SELECT COUNT(*) FROM user_actions;"
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Manager Interview",
+        "duration": "45m",
+        "description": "Culture fit.",
+        "key_focus": "Teamwork",
+        "practice_question": "Describe a conflict.",
+        "question_type": "text"
+      }
+    ]
+  }
+]

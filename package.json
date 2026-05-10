@@ -1,0 +1,41 @@
+{
+  "name": "mypersonal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fix.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rahulraabta/personal-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/rahulraabta/personal-bot/issues"
+  },
+  "homepage": "https://github.com/rahulraabta/personal-bot#readme",
+  "dependencies": {
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "lucide-react": "^1.14.0",
+    "typescript": "^6.0.3"
+  }
+}

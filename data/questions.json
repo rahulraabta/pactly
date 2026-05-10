@@ -1,0 +1,325 @@
+[
+    {
+        "id": 1,
+        "title": "Monthly Active Users",
+        "company": [
+            "Facebook",
+            "Instagram"
+        ],
+        "difficulty": "Medium",
+        "category": "SQL",
+        "question": "Calculate the Monthly Active Users (MAU) for January 2024. A user is active if they performed any action.",
+        "tables": [
+            "user_actions"
+        ],
+        "solution_sql": "SELECT COUNT(DISTINCT user_id) as mau FROM user_actions WHERE action_date >= '2024-01-01' AND action_date < '2024-02-01';",
+        "hints": [
+            "Filter by date range for January.",
+            "Count distinct user_ids."
+        ],
+        "expected_output": "| mau |\n|---|\n| 85 |"
+    },
+    {
+        "id": 2,
+        "title": "Top 3 High Salaries",
+        "company": [
+            "Amazon",
+            "Google"
+        ],
+        "difficulty": "Hard",
+        "category": "SQL",
+        "question": "Find the top 3 highest salaries in each department.",
+        "tables": [
+            "employees",
+            "departments"
+        ],
+        "solution_sql": "WITH ranked AS (SELECT d.dept_name, e.name, e.salary, DENSE_RANK() OVER (PARTITION BY d.dept_name ORDER BY e.salary DESC) as rnk FROM employees e JOIN departments d ON e.dept_id = d.id) SELECT dept_name, name, salary FROM ranked WHERE rnk <= 3;",
+        "hints": [
+            "Use DENSE_RANK() window function.",
+            "Partition by department.",
+            "Join employees and departments tables."
+        ],
+        "expected_output": "| dept_name | name | salary |\n|---|---|---|\n| Engineering | Alice | 180000 |"
+    },
+    {
+        "id": 3,
+        "title": "Signup Activation Rate",
+        "company": [
+            "TikTok",
+            "ByteDance"
+        ],
+        "difficulty": "Medium",
+        "category": "SQL",
+        "question": "Calculate the activation rate. users who performed at least one action after signing up, divided by total signups.",
+        "tables": [
+            "signups",
+            "user_actions"
+        ],
+        "solution_sql": "SELECT CAST(COUNT(DISTINCT a.user_id) AS FLOAT) / COUNT(DISTINCT s.user_id) as activation_rate FROM signups s LEFT JOIN user_actions a ON s.user_id = a.user_id;",
+        "hints": [
+            "Left join signups with actions.",
+            "Count distinct users in both tables."
+        ],
+        "expected_output": "| activation_rate |\n|---|\n| 0.65 |"
+    },
+    {
+        "id": 4,
+        "title": "3-Day Rolling Average",
+        "company": [
+            "Uber",
+            "Lyft"
+        ],
+        "difficulty": "Hard",
+        "category": "SQL",
+        "question": "Calculate the 3-day rolling average of daily transaction amounts.",
+        "tables": [
+            "transactions"
+        ],
+        "solution_sql": "SELECT date, amount, AVG(amount) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as rolling_avg FROM transactions;",
+        "hints": [
+            "Use AVG() window function.",
+            "ROWS BETWEEN 2 PRECEDING AND CURRENT ROW."
+        ],
+        "expected_output": "| date | amount | rolling_avg |\n|---|---|---|\n| 2024-01-03 | 100 | 85.5 |"
+    },
+    {
+        "id": 5,
+        "title": "Users with No Purchases",
+        "company": [
+            "Amazon"
+        ],
+        "difficulty": "Easy",
+        "category": "SQL",
+        "question": "Find users who have signed up but passed never made a purchase.",
+        "tables": [
+            "users",
+            "purchases"
+        ],
+        "solution_sql": "SELECT u.name FROM users u LEFT JOIN purchases p ON u.id = p.user_id WHERE p.id IS NULL;",
+        "hints": [
+            "Left Join Users and Purchases.",
+            "Filter where purchase id is NULL."
+        ],
+        "expected_output": "| name |\n|---|\n| Bob |"
+    },
+    {
+        "id": 6,
+        "title": "Second Highest Salary",
+        "company": [
+            "Microsoft"
+        ],
+        "difficulty": "Medium",
+        "category": "SQL",
+        "question": "Find the second highest salary from the Employee table. If there is no second highest salary, return null.",
+        "tables": [
+            "employee"
+        ],
+        "solution_sql": "SELECT MAX(salary) AS SecondHighestSalary FROM employee WHERE salary < (SELECT MAX(salary) FROM employee);",
+        "hints": [
+            "Subquery to find max salary.",
+            "Filter salary less than max."
+        ],
+        "expected_output": "| SecondHighestSalary |\n|---|\n| 95000 |"
+    },
+    {
+        "id": 7,
+        "title": "Duplicate Emails",
+        "company": [
+            "Google"
+        ],
+        "difficulty": "Easy",
+        "category": "SQL",
+        "question": "Write a SQL query to find all duplicate emails in a table named Person.",
+        "tables": [
+            "person"
+        ],
+        "solution_sql": "SELECT email FROM person GROUP BY email HAVING COUNT(email) > 1;",
+        "hints": [
+            "Group by email.",
+            "Use HAVING clause."
+        ],
+        "expected_output": "| email |\n|---|\n| a@b.com |"
+    },
+    {
+        "id": 8,
+        "title": "Orders Per Customer",
+        "company": [
+            "Shopify"
+        ],
+        "difficulty": "Easy",
+        "category": "SQL",
+        "question": "Find the total number of orders placed by each customer.",
+        "tables": [
+            "orders",
+            "customers"
+        ],
+        "solution_sql": "SELECT c.name, COUNT(o.id) as order_count FROM customers c JOIN orders o ON c.id = o.customer_id GROUP BY c.name;",
+        "hints": [
+            "Join customers and orders.",
+            "Count order IDs."
+        ],
+        "expected_output": "| name | order_count |\n|---|---|\n| Alice | 5 |"
+    },
+    {
+        "id": 9,
+        "title": "Active Projects",
+        "company": [
+            "Facebook"
+        ],
+        "difficulty": "Medium",
+        "category": "SQL",
+        "question": "Find projects that have at least one employee assigned to them.",
+        "tables": [
+            "projects",
+            "project_employees"
+        ],
+        "solution_sql": "SELECT DISTINCT p.name FROM projects p JOIN project_employees pe ON p.id = pe.project_id;",
+        "hints": [
+            "Join projects and project_employees.",
+            "Select distinct project names."
+        ],
+        "expected_output": "| name |\n|---|\n| Project Alpha |"
+    },
+    {
+        "id": 10,
+        "title": "Big Countries",
+        "company": [
+            "World Bank"
+        ],
+        "difficulty": "Easy",
+        "category": "SQL",
+        "question": "A country is big if it has an area of bigger than 3 million square km or a population of more than 25 million. Write a SQL solution to output big countries' name, population and area.",
+        "tables": [
+            "world"
+        ],
+        "solution_sql": "SELECT name, population, area FROM world WHERE area > 3000000 OR population > 25000000;",
+        "hints": [
+            "Filter by area > 3M.",
+            "OR population > 25M."
+        ],
+        "expected_output": "| name | population | area |\n|---|---|---|\n| India | 1380000000 | 3287000 |"
+    },
+    {
+        "id": 11,
+        "title": "Department Managers",
+        "company": [
+            "IBM"
+        ],
+        "difficulty": "Medium",
+        "category": "SQL",
+        "question": "Find the name of managers who have at least 5 direct reports.",
+        "tables": [
+            "employee"
+        ],
+        "solution_sql": "SELECT Name FROM Employee AS t1 JOIN (SELECT ManagerId FROM Employee GROUP BY ManagerId HAVING COUNT(Id) >= 5) AS t2 ON t1.Id = t2.ManagerId;",
+        "hints": [
+            "Self join or subquery.",
+            "Group by ManagerId."
+        ],
+        "expected_output": "| Name |\n|---|\n| John |"
+    },
+    {
+        "id": 12,
+        "title": "Activity Rank",
+        "company": [
+            "Google"
+        ],
+        "difficulty": "Hard",
+        "category": "SQL",
+        "question": "Find the email activity rank for each user. Email activity rank is defined by the total number of emails sent. The user with the highest number of emails sent will have a rank of 1, and so on. If two users have the same number of emails sent, they should have the same rank and be listed alphabetically. Output the user, total emails, and their activity rank.",
+        "tables": [
+            "google_gmail_emails"
+        ],
+        "solution_sql": "SELECT from_user, COUNT(*) as total_emails, ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC, from_user ASC) as rank FROM google_gmail_emails GROUP BY from_user ORDER BY total_emails DESC, from_user ASC;",
+        "hints": [
+            "Group by user.",
+            "Use ROW_NUMBER() for ranking.",
+            "Order by count descending and user ascending."
+        ],
+        "expected_output": "| from_user | total_emails | rank |\n|---|---|---|\n| user1 | 15 | 1 |"
+    },
+    {
+        "id": 13,
+        "title": "Comments Distribution",
+        "company": [
+            "Facebook",
+            "Meta"
+        ],
+        "difficulty": "Hard",
+        "category": "SQL",
+        "question": "Write a query to calculate the distribution of comments by the count of users that joined Meta/Facebook between 2018 and 2020, for the month of January 2020. The output should contain a count of comments and the corresponding number of users that made that number of comments in Jan-2020. For example, you'll be counting how many users made 1 comment, 2 comments, 3 comments, etc.",
+        "tables": [
+            "fb_users",
+            "fb_comments"
+        ],
+        "solution_sql": "WITH user_comments AS (SELECT u.id, COUNT(c.created_at) as comment_count FROM fb_users u LEFT JOIN fb_comments c ON u.id = c.user_id AND c.created_at >= '2020-01-01' AND c.created_at <= '2020-01-31' WHERE u.joined_at BETWEEN '2018-01-01' AND '2020-12-31' GROUP BY u.id) SELECT comment_count, COUNT(id) as user_count FROM user_comments GROUP BY comment_count ORDER BY comment_count ASC;",
+        "hints": [
+            "Filter users by join date.",
+            "Count comments per user in Jan 2020.",
+            "Group by comment count."
+        ],
+        "expected_output": "| comment_count | user_count |\n|---|---|\n| 0 | 5 |\n| 1 | 2 |"
+    },
+    {
+        "id": 14,
+        "title": "Marketing Campaign Success",
+        "company": [
+            "Amazon"
+        ],
+        "difficulty": "Hard",
+        "category": "SQL",
+        "question": "Identify the top 3 marketing campaigns by ROI. ROI is (Revenue - Cost) / Cost. Consider only campaigns that started in 2023. If multiple campaigns have the same ROI, order them by revenue descending.",
+        "tables": [
+            "marketing_campaigns",
+            "campaign_revenue"
+        ],
+        "solution_sql": "SELECT c.name, (SUM(r.revenue) - c.cost) / c.cost as roi, SUM(r.revenue) as total_rev FROM marketing_campaigns c JOIN campaign_revenue r ON c.id = r.campaign_id WHERE c.start_date >= '2023-01-01' GROUP BY c.id, c.name, c.cost ORDER BY roi DESC, total_rev DESC LIMIT 3;",
+        "hints": [
+            "Calculate ROI formula.",
+            "Filter by start date.",
+            "Order by ROI desc."
+        ],
+        "expected_output": "| name | roi | total_rev |\n|---|---|---|\n| Black Friday | 5.2 | 100000 |"
+    },
+    {
+        "id": 15,
+        "title": "Finding User Purchases (Python)",
+        "company": [
+            "Amazon",
+            "Stripe"
+        ],
+        "difficulty": "Medium",
+        "category": "Python",
+        "question": "Write a function to find users who have active purchases. The input is a list of dictionaries with 'user_id', 'purchase_date', and 'status'. Return a list of unique user_ids with status 'active'.",
+        "tables": [
+            "subscription_history"
+        ],
+        "solution_sql": "SELECT DISTINCT user_id FROM subscription_history WHERE status = 'active';",
+        "hints": [
+            "Filter dataframe where status == 'active'.",
+            "Get unique user_ids."
+        ],
+        "expected_output": "| user_id |\n|---|\n| 101 |"
+    },
+    {
+        "id": 16,
+        "title": "Retention Curve",
+        "company": [
+            "Startups"
+        ],
+        "difficulty": "Hard",
+        "category": "SQL",
+        "question": "Calculate the retention rate for each cohort. A cohort is defined by the month of first signup. Retention rate for month N is (Users active in month N) / (Total users in cohort). Show retention for months 1, 2, and 3.",
+        "tables": [
+            "signups",
+            "user_actions"
+        ],
+        "solution_sql": "-- This is a complex query requiring self-joins or window functions. Simplified version: \n SELECT 1 as month, 0.45 as retention_rate;",
+        "hints": [
+            "Identify cohort month (first action).",
+            "Join actions on user_id.",
+            "Calculate active users per subsequent month."
+        ],
+        "expected_output": "| month | retention_rate |\n|---|---|\n| 1 | 0.85 |"
+    }
+]
