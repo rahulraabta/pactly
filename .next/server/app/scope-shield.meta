@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(provider)/layout,_N_T_/(provider)/scope-shield/layout,_N_T_/(provider)/scope-shield/page,_N_T_/scope-shield"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KHByb3ZpZGVyKQ/scope-shield/__PAGE__",
+    "/!KHByb3ZpZGVyKQ/scope-shield",
+    "/!KHByb3ZpZGVyKQ",
+    "/_index",
+    "/_head"
+  ]
+}

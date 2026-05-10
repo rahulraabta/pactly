@@ -1,5 +1,14 @@
 {
+  "/(provider)/board/page": "app/(provider)/board/page.js",
+  "/(provider)/client-pulse/page": "app/(provider)/client-pulse/page.js",
+  "/(provider)/dashboard/page": "app/(provider)/dashboard/page.js",
+  "/(provider)/delay-ledger/page": "app/(provider)/delay-ledger/page.js",
+  "/(provider)/milestone-escrow/page": "app/(provider)/milestone-escrow/page.js",
+  "/(provider)/post-project/page": "app/(provider)/post-project/page.js",
+  "/(provider)/runway/page": "app/(provider)/runway/page.js",
+  "/(provider)/scope-shield/page": "app/(provider)/scope-shield/page.js",
+  "/(provider)/settings/page": "app/(provider)/settings/page.js",
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/page": "app/page.js"
 }

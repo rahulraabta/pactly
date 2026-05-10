@@ -1,5 +1,14 @@
 {
+  "/(provider)/board/page": "/board",
+  "/(provider)/client-pulse/page": "/client-pulse",
+  "/(provider)/dashboard/page": "/dashboard",
+  "/(provider)/delay-ledger/page": "/delay-ledger",
+  "/(provider)/milestone-escrow/page": "/milestone-escrow",
+  "/(provider)/post-project/page": "/post-project",
+  "/(provider)/runway/page": "/runway",
+  "/(provider)/scope-shield/page": "/scope-shield",
+  "/(provider)/settings/page": "/settings",
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
-  "/dashboard/page": "/dashboard"
+  "/page": "/"
 }

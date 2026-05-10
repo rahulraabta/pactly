@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(provider)/layout,_N_T_/(provider)/delay-ledger/layout,_N_T_/(provider)/delay-ledger/page,_N_T_/delay-ledger"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KHByb3ZpZGVyKQ/delay-ledger/__PAGE__",
+    "/!KHByb3ZpZGVyKQ/delay-ledger",
+    "/!KHByb3ZpZGVyKQ",
+    "/_index",
+    "/_head"
+  ]
+}

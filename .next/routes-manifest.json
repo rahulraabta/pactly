@@ -24,6 +24,12 @@
   "dynamicRoutes": [],
   "staticRoutes": [
     {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
       "page": "/_global-error",
       "regex": "^/_global\\-error(?:/)?$",
       "routeKeys": {},
@@ -36,10 +42,58 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/board",
+      "regex": "^/board(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/board(?:/)?$"
+    },
+    {
+      "page": "/client-pulse",
+      "regex": "^/client\\-pulse(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/client\\-pulse(?:/)?$"
+    },
+    {
       "page": "/dashboard",
       "regex": "^/dashboard(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/delay-ledger",
+      "regex": "^/delay\\-ledger(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/delay\\-ledger(?:/)?$"
+    },
+    {
+      "page": "/milestone-escrow",
+      "regex": "^/milestone\\-escrow(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/milestone\\-escrow(?:/)?$"
+    },
+    {
+      "page": "/post-project",
+      "regex": "^/post\\-project(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/post\\-project(?:/)?$"
+    },
+    {
+      "page": "/runway",
+      "regex": "^/runway(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/runway(?:/)?$"
+    },
+    {
+      "page": "/scope-shield",
+      "regex": "^/scope\\-shield(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/scope\\-shield(?:/)?$"
+    },
+    {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
     }
   ],
   "dataRoutes": [],

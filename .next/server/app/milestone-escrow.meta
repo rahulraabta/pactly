@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(provider)/layout,_N_T_/(provider)/milestone-escrow/layout,_N_T_/(provider)/milestone-escrow/page,_N_T_/milestone-escrow"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KHByb3ZpZGVyKQ/milestone-escrow/__PAGE__",
+    "/!KHByb3ZpZGVyKQ/milestone-escrow",
+    "/!KHByb3ZpZGVyKQ",
+    "/_index",
+    "/_head"
+  ]
+}

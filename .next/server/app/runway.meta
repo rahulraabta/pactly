@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(provider)/layout,_N_T_/(provider)/runway/layout,_N_T_/(provider)/runway/page,_N_T_/runway"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KHByb3ZpZGVyKQ/runway/__PAGE__",
+    "/!KHByb3ZpZGVyKQ/runway",
+    "/!KHByb3ZpZGVyKQ",
+    "/_index",
+    "/_head"
+  ]
+}
