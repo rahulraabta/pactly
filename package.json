@@ -7,28 +7,28 @@
     "test": "tests"
   },
   "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "test": "echo \"Error: no test specified\" && exit 1"
-},
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rahulraabta/personal-bot.git"
+    "url": "git+https://github.com/rahulraabta/pactly.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/rahulraabta/personal-bot/issues"
+    "url": "https://github.com/rahulraabta/pactly/issues"
   },
-  "homepage": "https://github.com/rahulraabta/personal-bot#readme",
+  "homepage": "https://github.com/rahulraabta/pactly#readme",
   "dependencies": {
     "next": "^16.2.6",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-is": "^19.2.6",
     "recharts": "^3.8.1"
   },
   "devDependencies": {
