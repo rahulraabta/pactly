@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "stitch": {
+      "command": "npx.cmd",
+      "args": ["-y", "@_davideast/stitch-mcp@latest", "proxy"],
+      "env": {
+        "STITCH_USE_SYSTEM_GCLOUD": "1",
+        "GOOGLE_CLOUD_PROJECT": "scenic-oxygen-480712-s4",
+        "CI": "1",
+        "DOTENV_CONFIG_QUIET": "true",
+        "DOTENV_QUIET": "true",
+        "NO_COLOR": "1"
+      }
+    }
+  }
+}

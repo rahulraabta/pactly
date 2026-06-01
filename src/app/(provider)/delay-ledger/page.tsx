@@ -1,454 +1,288 @@
 "use client";
 
-import { useState } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-} from "recharts";
-import {
-  Timer,
-  Search,
-  Plus,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Briefcase,
-  HelpCircle,
-  Trash2,
-} from "lucide-react";
+import React, { useState } from "react";
+import { HeroNumber } from "@/components/ui/hero-number";
+import { Plus, X, Calendar } from "lucide-react";
 
-interface DelayRecord {
+interface DelayEntry {
   id: string;
   project: string;
-  type: "Client" | "Team" | "External";
-  description: string;
+  reason: string;
   days: number;
+  impactAmount: number;
+  severity: "Low" | "Medium" | "High";
   date: string;
-  status: "Acknowledged" | "Disputed" | "Pending";
 }
 
-const initialDelays: DelayRecord[] = [
+const initialMockEntries: DelayEntry[] = [
   {
-    id: "DEL-001",
-    project: "Dashboard Redesign",
-    type: "Client",
-    description: "Feedback on Figma wireframes delayed by 5 business days.",
+    id: "DL-1",
+    project: "Sunrise Portal",
+    reason: "Delayed feedback on dashboard wireframes & core portal layouts",
+    days: 12,
+    impactAmount: 85000,
+    severity: "High",
+    date: "2026-05-28",
+  },
+  {
+    id: "DL-2",
+    project: "Neon Labs",
+    reason: "Client API credential handover and sandbox access latency",
+    days: 8,
+    impactAmount: 40000,
+    severity: "Medium",
+    date: "2026-05-24",
+  },
+  {
+    id: "DL-3",
+    project: "Prism Media",
+    reason: "Marketing copy assets & product high-res media files overdue",
+    days: 6,
+    impactAmount: 25000,
+    severity: "Medium",
+    date: "2026-05-20",
+  },
+  {
+    id: "DL-4",
+    project: "Aether Branding",
+    reason: "Brand focus group alignment workshop rescheduling requested",
     days: 5,
-    date: "2026-05-27",
-    status: "Acknowledged",
+    impactAmount: 15000,
+    severity: "Low",
+    date: "2026-05-15",
   },
   {
-    id: "DEL-002",
-    project: "Mobile App Development",
-    type: "External",
-    description: "App Store review process took longer than usual.",
-    days: 4,
-    date: "2026-05-22",
-    status: "Acknowledged",
-  },
-  {
-    id: "DEL-003",
-    project: "E-Commerce Website",
-    type: "Client",
-    description: "Stripe API credential handover delayed.",
+    id: "DL-5",
+    project: "TechFlow API",
+    reason: "Partner API staging access verification bottleneck",
     days: 3,
-    date: "2026-05-18",
-    status: "Pending",
-  },
-  {
-    id: "DEL-004",
-    project: "API Integration",
-    type: "Team",
-    description: "Database refactoring required additional performance debugging.",
-    days: 2,
+    impactAmount: 0,
+    severity: "Low",
     date: "2026-05-10",
-    status: "Acknowledged",
   },
 ];
 
 export default function DelayLedgerPage() {
-  const [delays, setDelays] = useState<DelayRecord[]>(initialDelays);
-  const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState<"All" | "Client" | "Team" | "External">("All");
-
-  // Modal State
+  const [entries, setEntries] = useState<DelayEntry[]>(initialMockEntries);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newProject, setNewProject] = useState("");
-  const [newType, setNewType] = useState<"Client" | "Team" | "External">("Client");
-  const [newDescription, setNewDescription] = useState("");
-  const [newDays, setNewDays] = useState("");
 
-  const handleCreate = (e: React.FormEvent) => {
+  // Form states for adding new delay log
+  const [projectInput, setProjectInput] = useState("Sunrise Portal");
+  const [reasonInput, setReasonInput] = useState("");
+  const [daysInput, setDaysInput] = useState("");
+  const [impactInput, setImpactInput] = useState("");
+  const [severityInput, setSeverityInput] = useState<"Low" | "Medium" | "High">("Low");
+  const [dateInput, setDateInput] = useState("");
+
+  const handleLogDelay = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProject || !newDescription || !newDays) return;
+    if (!reasonInput || !daysInput) return;
 
-    const newRecord: DelayRecord = {
-      id: `DEL-00${delays.length + 1}`,
-      project: newProject,
-      type: newType,
-      description: newDescription,
-      days: Number(newDays) || 1,
-      date: new Date().toISOString().split("T")[0],
-      status: "Pending",
+    const newEntry: DelayEntry = {
+      id: `DL-${entries.length + 1}`,
+      project: projectInput,
+      reason: reasonInput,
+      days: parseInt(daysInput) || 0,
+      impactAmount: parseFloat(impactInput) || 0,
+      severity: severityInput,
+      date: dateInput || new Date().toISOString().split("T")[0],
     };
 
-    setDelays([newRecord, ...delays]);
+    setEntries([newEntry, ...entries]);
     setIsModalOpen(false);
 
-    setNewProject("");
-    setNewType("Client");
-    setNewDescription("");
-    setNewDays("");
+    // Reset inputs
+    setReasonInput("");
+    setDaysInput("");
+    setImpactInput("");
+    setSeverityInput("Low");
+    setDateInput("");
   };
 
-  const handleStatusChange = (id: string, newStatus: "Acknowledged" | "Disputed" | "Pending") => {
-    setDelays(
-      delays.map((d) => (d.id === id ? { ...d, status: newStatus } : d))
-    );
+  // Calculate total delay days dynamically
+  const totalDays = entries.reduce((sum, entry) => sum + entry.days, 0);
+
+  // Helper for severity styles
+  const getSeverityStyle = (sev: "Low" | "Medium" | "High") => {
+    switch (sev) {
+      case "Low":
+        return { color: "var(--text-muted)", backgroundColor: "rgba(107, 106, 102, 0.1)", border: "1px solid rgba(107, 106, 102, 0.2)" };
+      case "Medium":
+        return { color: "var(--warning)", backgroundColor: "rgba(201, 124, 26, 0.1)", border: "1px solid rgba(201, 124, 26, 0.2)" };
+      case "High":
+        return { color: "var(--danger)", backgroundColor: "rgba(184, 64, 64, 0.1)", border: "1px solid rgba(184, 64, 64, 0.2)" };
+    }
   };
-
-  const handleDelete = (id: string) => {
-    setDelays(delays.filter((d) => d.id !== id));
-  };
-
-  // Metrics
-  const clientDays = delays.filter((d) => d.type === "Client").reduce((sum, d) => sum + d.days, 0);
-  const teamDays = delays.filter((d) => d.type === "Team").reduce((sum, d) => sum + d.days, 0);
-  const externalDays = delays.filter((d) => d.type === "External").reduce((sum, d) => sum + d.days, 0);
-  const totalDays = clientDays + teamDays + externalDays;
-
-  // Chart Data
-  const chartData = [
-    { name: "Client Delays", days: clientDays, fill: "#eab308" },
-    { name: "Team Delays", days: teamDays, fill: "#f87171" },
-    { name: "External Delays", days: externalDays, fill: "#38bdf8" },
-  ];
-
-  const filteredDelays = delays.filter((d) => {
-    const matchesFilter = filterType === "All" || d.type === filterType;
-    const matchesSearch =
-      d.project.toLowerCase().includes(search.toLowerCase()) ||
-      d.description.toLowerCase().includes(search.toLowerCase()) ||
-      d.id.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Timer className="h-6 w-6 text-yellow-500" />
-            DelayLedger
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Track client-induced delays to automatically extend contract deadlines and prove milestones are blocked.
-          </p>
-        </div>
+      {/* Top Section */}
+      <div className="flex justify-between items-start">
+        <HeroNumber value={`${totalDays} days`} label="total delay across all projects" />
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 hover:bg-yellow-700 px-4 py-2 text-sm font-semibold text-white transition-colors"
+          className="bg-accent hover:bg-accent-hover text-white text-[13px] px-4 py-2 rounded-sm font-medium transition-colors cursor-pointer"
         >
-          <Plus className="h-4 w-4" />
-          Log Delay Record
+          + Log Delay
         </button>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Total Delay Registered</span>
-            <div className="p-2 rounded-lg bg-yellow-400/10">
-              <Clock className="h-4 w-4 text-yellow-400" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-100">{totalDays} Days</p>
-          <p className="mt-1 text-xs text-slate-400">Aggregated across all projects</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Client Responsibility</span>
-            <div className="p-2 rounded-lg bg-yellow-500/10">
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-yellow-500">{clientDays} Days</p>
-          <p className="mt-1 text-xs text-emerald-400">Protects your deadline milestones</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">External Responsibility</span>
-            <div className="p-2 rounded-lg bg-sky-400/10">
-              <HelpCircle className="h-4 w-4 text-sky-400" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-sky-400">{externalDays} Days</p>
-          <p className="mt-1 text-xs text-slate-400">Forces of nature / 3rd party APIs</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Team Responsibility</span>
-            <div className="p-2 rounded-lg bg-red-400/10">
-              <XCircle className="h-4 w-4 text-red-400" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-red-400">{teamDays} Days</p>
-          <p className="mt-1 text-xs text-red-400">Freelancer/internal slippage</p>
-        </div>
-      </div>
-
-      {/* Chart Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <h3 className="text-sm font-semibold mb-4">Attribution Breakdown (Days)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 30 }}>
-              <XAxis type="number" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} width={100} />
-              <Tooltip
-                contentStyle={{
-                  background: "#0f172a",
-                  border: "1px solid #1e293b",
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
+      {/* Timeline container */}
+      <div className="max-w-3xl ml-2 relative border-l border-border pl-6 space-y-8 py-2">
+        {entries.map((entry) => {
+          const styleSev = getSeverityStyle(entry.severity);
+          return (
+            <div key={entry.id} className="relative group">
+              {/* Absolute dot directly centered on the line */}
+              <div
+                className="absolute top-1.5 left-[-28px] w-2 h-2 rounded-full bg-accent ring-4 ring-bg transition-transform duration-200 group-hover:scale-125"
+                style={{ left: "-28px" }}
               />
-              <Bar dataKey="days" radius={[0, 4, 4, 0]}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-semibold mb-2">Proactive Protection Tip</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              When a client delays asset delivery or review signatures, it triggers immediate downstream timeline slippage. By logging it in the DelayLedger, you automatically generate time-stamped proof to share with the client and attach to payment milestone dates.
-            </p>
-          </div>
-          <div className="border-t border-slate-800 pt-3 mt-4 text-xs text-slate-300">
-            <span className="font-semibold text-yellow-500">Contract Rule:</span> Every 1 day of Client delay defaults to an automatic 1.5 days extension of the delivery milestone.
-          </div>
-        </div>
+              {/* Box container for the timeline content */}
+              <div className="bg-surface border border-border rounded-md p-4 transition-all duration-200 hover:border-border/80">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] font-semibold text-text">
+                      {entry.project}
+                    </span>
+                    <span className="bg-surface-elevated border border-border text-[11px] font-mono text-text-muted px-2 py-0.5 rounded-full">
+                      {entry.days} days
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span
+                      style={styleSev}
+                      className="px-2 py-0.5 rounded-full font-medium"
+                    >
+                      {entry.severity}
+                    </span>
+                    <span className="text-text-muted font-mono flex items-center gap-1">
+                      <Calendar className="h-3 w-3" /> {entry.date}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-[13px] text-text-muted leading-relaxed">
+                  {entry.reason}
+                </p>
+
+                {entry.impactAmount > 0 && (
+                  <div className="mt-3 text-[12px] text-text-muted font-medium border-t border-border/20 pt-2 flex justify-between items-center">
+                    <span>Project financial buffer protection:</span>
+                    <span className="text-text font-mono font-semibold">
+                      ₹{entry.impactAmount.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-900 p-4 rounded-xl border border-slate-800">
-        <div className="flex gap-1.5 self-start sm:self-center overflow-x-auto w-full sm:w-auto">
-          {(["All", "Client", "Team", "External"] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                filterType === type
-                  ? "bg-yellow-500 text-slate-950"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search delay records..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-yellow-500"
-          />
-        </div>
-      </div>
-
-      {/* Table Section */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800">
-                <th className="p-4">ID</th>
-                <th className="p-4">Project</th>
-                <th className="p-4">Type</th>
-                <th className="p-4">Description</th>
-                <th className="p-4 text-center">Days</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-right">Attribution</th>
-                <th className="p-4 text-right">Delete</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredDelays.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500 text-sm">
-                    No delay logs recorded.
-                  </td>
-                </tr>
-              ) : (
-                filteredDelays.map((delay) => (
-                  <tr key={delay.id} className="hover:bg-slate-800/20 transition-colors">
-                    <td className="p-4 font-mono text-xs text-slate-400">{delay.id}</td>
-                    <td className="p-4 font-semibold text-slate-200">{delay.project}</td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${
-                          delay.type === "Client"
-                            ? "bg-yellow-400/10 text-yellow-400"
-                            : delay.type === "External"
-                            ? "bg-sky-400/10 text-sky-400"
-                            : "bg-red-400/10 text-red-400"
-                        }`}
-                      >
-                        {delay.type}
-                      </span>
-                    </td>
-                    <td className="p-4 text-xs text-slate-300 max-w-sm">{delay.description}</td>
-                    <td className="p-4 text-center font-semibold text-slate-200">
-                      +{delay.days} Days
-                    </td>
-                    <td className="p-4 text-center">
-                      <span
-                        className={`text-xs ${
-                          delay.status === "Acknowledged"
-                            ? "text-emerald-400"
-                            : delay.status === "Disputed"
-                            ? "text-red-400"
-                            : "text-slate-400"
-                        }`}
-                      >
-                        {delay.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-1.5">
-                        <button
-                          onClick={() => handleStatusChange(delay.id, "Acknowledged")}
-                          className="px-2 py-1 text-[10px] rounded border border-slate-700 bg-slate-800 text-emerald-400 hover:bg-slate-700"
-                        >
-                          Acknowledge
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(delay.id, "Disputed")}
-                          className="px-2 py-1 text-[10px] rounded border border-slate-700 bg-slate-800 text-red-400 hover:bg-slate-700"
-                        >
-                          Dispute
-                        </button>
-                      </div>
-                    </td>
-                    <td className="p-4 text-right">
-                      <button
-                        onClick={() => handleDelete(delay.id)}
-                        className="p-1 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Modal dialog */}
+      {/* Log Delay Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-surface-elevated border border-border rounded-md p-6 shadow-2xl relative">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              className="absolute right-4 top-4 text-text-muted hover:text-text cursor-pointer transition-colors"
             >
-              <XCircle className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
 
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-1">
-              <Clock className="h-5 w-5 text-yellow-500" />
+            <h3 className="text-[16px] font-semibold text-text mb-4">
               Log Delay Event
             </h3>
-            <p className="text-xs text-slate-400 mb-4">
-              Create an official record of delays for timeline buffer reconciliation.
-            </p>
 
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleLogDelay} className="space-y-4 text-[13px]">
+              <div>
+                <label className="block text-text-muted font-medium mb-1">Project</label>
+                <select
+                  value={projectInput}
+                  onChange={(e) => setProjectInput(e.target.value)}
+                  className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent"
+                >
+                  <option value="Sunrise Portal">Sunrise Portal</option>
+                  <option value="Neon Labs">Neon Labs</option>
+                  <option value="Prism Media">Prism Media</option>
+                  <option value="Aether Branding">Aether Branding</option>
+                  <option value="TechFlow API">TechFlow API</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-text-muted font-medium mb-1">Delay Reason</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="e.g. Asset assets delayed, code review signature outstanding..."
+                  value={reasonInput}
+                  onChange={(e) => setReasonInput(e.target.value)}
+                  className="w-full bg-surface border border-border rounded-sm p-2 text-text placeholder:text-text-faint focus:outline-none focus:border-accent resize-none"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Project *</label>
+                  <label className="block text-text-muted font-medium mb-1">Duration (Days)</label>
                   <input
-                    type="text"
+                    type="number"
                     required
-                    value={newProject}
-                    onChange={(e) => setNewProject(e.target.value)}
-                    placeholder="e.g. Dashboard Redesign"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500"
+                    placeholder="e.g. 5"
+                    value={daysInput}
+                    onChange={(e) => setDaysInput(e.target.value)}
+                    className="w-full bg-surface border border-border rounded-sm p-2 text-text placeholder:text-text-faint focus:outline-none focus:border-accent font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Attribution Type *</label>
-                  <select
-                    value={newType}
-                    onChange={(e) => setNewType(e.target.value as any)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500"
-                  >
-                    <option value="Client">Client (Wireframe reviews, Handover)</option>
-                    <option value="External">External (APIs, Server uptime, Review gates)</option>
-                    <option value="Team">Team (Internal delay, illness, tech debt)</option>
-                  </select>
+                  <label className="block text-text-muted font-medium mb-1">Cost Impact (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 25000 (optional)"
+                    value={impactInput}
+                    onChange={(e) => setImpactInput(e.target.value)}
+                    className="w-full bg-surface border border-border rounded-sm p-2 text-text placeholder:text-text-faint focus:outline-none focus:border-accent font-mono"
+                  />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Impact Duration (Days) *</label>
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  value={newDays}
-                  onChange={(e) => setNewDays(e.target.value)}
-                  placeholder="e.g. 3"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-text-muted font-medium mb-1">Severity</label>
+                  <select
+                    value={severityInput}
+                    onChange={(e) => setSeverityInput(e.target.value as any)}
+                    className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-text-muted font-medium mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={dateInput}
+                    onChange={(e) => setDateInput(e.target.value)}
+                    className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent text-[12px]"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Delay Description *</label>
-                <textarea
-                  required
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Describe the blocker in detail. Why did it happen and what is the concrete schedule impact?"
-                  rows={4}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                  className="px-4 py-2 rounded-sm bg-surface border border-border text-text hover:bg-surface-elevated transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-xs font-semibold text-white transition-colors"
+                  className="px-4 py-2 rounded-sm bg-accent hover:bg-accent-hover text-white transition-colors cursor-pointer font-medium"
                 >
                   Register Delay
                 </button>

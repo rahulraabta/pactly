@@ -1,324 +1,200 @@
 "use client";
 
-import { useState } from "react";
-import {
-  ShieldAlert,
-  Search,
-  Plus,
-  Check,
-  X,
-  PlusCircle,
-  FileText,
-  Clock,
-  DollarSign,
-  Briefcase,
-  AlertTriangle,
-  User,
-} from "lucide-react";
+import React, { useState } from "react";
+import { HeroNumber } from "@/components/ui/hero-number";
+import { Plus, X } from "lucide-react";
 
-interface ChangeRequest {
+interface ChangeOrder {
   id: string;
-  client: string;
   project: string;
-  summary: string;
   description: string;
-  amount: number;
-  timeImpactDays: number;
+  costImpact: number;
   status: "Approved" | "Pending" | "Rejected";
   date: string;
 }
 
-const initialRequests: ChangeRequest[] = [
+const initialMockData: ChangeOrder[] = [
   {
-    id: "CR-001",
-    client: "Sunrise Exports",
-    project: "Dashboard Redesign",
-    summary: "Extra reporting module & analytics export",
-    description: "Client requested CSV/PDF download capabilities along with 3 custom charts on the admin panel.",
-    amount: 25000,
-    timeImpactDays: 5,
-    status: "Pending",
+    id: "CO-1",
+    project: "Sunrise Portal",
+    description: "Extra database backup replication node setup",
+    costImpact: 45000,
+    status: "Approved",
     date: "2026-05-28",
   },
   {
-    id: "CR-002",
-    client: "Neon Labs",
-    project: "Mobile App Development",
-    summary: "Biometric login (FaceID / Fingerprint)",
-    description: "Add FaceID and fingerprint authentication support to iOS and Android builds.",
-    amount: 40000,
-    timeImpactDays: 4,
+    id: "CO-2",
+    project: "Neon Labs",
+    description: "Biometrics login support (FaceID/Fingerprint)",
+    costImpact: 60000,
     status: "Approved",
     date: "2026-05-24",
   },
   {
-    id: "CR-003",
-    client: "TechFlow",
-    project: "API Integration",
-    summary: "Stripe Subscriptions Webhooks Setup",
-    description: "Setup complex webhook retry mechanisms and local database logging for failed subscriptions.",
-    amount: 15000,
-    timeImpactDays: 2,
-    status: "Approved",
+    id: "CO-3",
+    project: "Prism Media",
+    description: "Multi-currency checkout localization",
+    costImpact: 50000,
+    status: "Pending",
     date: "2026-05-20",
   },
   {
-    id: "CR-004",
-    client: "Prism Media",
-    project: "E-Commerce Website",
-    summary: "Multi-currency support & checkout localization",
-    description: "Client wants automated currency conversion based on user IP geolocation and translation of checkouts.",
-    amount: 30000,
-    timeImpactDays: 8,
+    id: "CO-4",
+    project: "Aether Branding",
+    description: "Animated logo variation iterations",
+    costImpact: 25000,
     status: "Rejected",
     date: "2026-05-15",
+  },
+  {
+    id: "CO-5",
+    project: "Sunrise Portal",
+    description: "Stripe invoice recurring sub-webhooks integration",
+    costImpact: 140000,
+    status: "Approved",
+    date: "2026-05-10",
   },
 ];
 
 export default function ScopeShieldPage() {
-  const [requests, setRequests] = useState<ChangeRequest[]>(initialRequests);
-  const [filter, setFilter] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");
-  const [search, setSearch] = useState("");
-
-  // Modal states
+  const [data, setData] = useState<ChangeOrder[]>(initialMockData);
+  const [selectedProject, setSelectedProject] = useState<string>("All");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newClient, setNewClient] = useState("");
-  const [newProject, setNewProject] = useState("");
-  const [newSummary, setNewSummary] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newAmount, setNewAmount] = useState("");
-  const [newTimeImpact, setNewTimeImpact] = useState("");
 
-  const handleApprove = (id: string) => {
-    setRequests(
-      requests.map((r) => (r.id === id ? { ...r, status: "Approved" } : r))
-    );
-  };
+  // Form states for new change order
+  const [projectInput, setProjectInput] = useState("Sunrise Portal");
+  const [descInput, setDescInput] = useState("");
+  const [costInput, setCostInput] = useState("");
+  const [statusInput, setStatusInput] = useState<"Approved" | "Pending" | "Rejected">("Pending");
+  const [dateInput, setDateInput] = useState("");
 
-  const handleReject = (id: string) => {
-    setRequests(
-      requests.map((r) => (r.id === id ? { ...r, status: "Rejected" } : r))
-    );
-  };
-
-  const handleCreate = (e: React.FormEvent) => {
+  const handleAddChangeOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newClient || !newProject || !newSummary) return;
+    if (!descInput || !costInput) return;
 
-    const newRequest: ChangeRequest = {
-      id: `CR-00${requests.length + 1}`,
-      client: newClient,
-      project: newProject,
-      summary: newSummary,
-      description: newDescription,
-      amount: Number(newAmount) || 0,
-      timeImpactDays: Number(newTimeImpact) || 0,
-      status: "Pending",
-      date: new Date().toISOString().split("T")[0],
+    const newOrder: ChangeOrder = {
+      id: `CO-${data.length + 1}`,
+      project: projectInput,
+      description: descInput,
+      costImpact: parseFloat(costInput) || 0,
+      status: statusInput,
+      date: dateInput || new Date().toISOString().split("T")[0],
     };
 
-    setRequests([newRequest, ...requests]);
+    setData([newOrder, ...data]);
     setIsModalOpen(false);
 
     // Reset fields
-    setNewClient("");
-    setNewProject("");
-    setNewSummary("");
-    setNewDescription("");
-    setNewAmount("");
-    setNewTimeImpact("");
+    setDescInput("");
+    setCostInput("");
+    setStatusInput("Pending");
+    setDateInput("");
   };
 
-  // Metrics
-  const approvedTotal = requests
-    .filter((r) => r.status === "Approved")
-    .reduce((sum, r) => sum + r.amount, 0);
-
-  const pendingTotal = requests
-    .filter((r) => r.status === "Pending")
-    .reduce((sum, r) => sum + r.amount, 0);
-
-  const approvedTimeImpact = requests
-    .filter((r) => r.status === "Approved")
-    .reduce((sum, r) => sum + r.timeImpactDays, 0);
-
-  const filteredRequests = requests.filter((r) => {
-    const matchesFilter = filter === "All" || r.status === filter;
-    const matchesSearch =
-      r.client.toLowerCase().includes(search.toLowerCase()) ||
-      r.project.toLowerCase().includes(search.toLowerCase()) ||
-      r.summary.toLowerCase().includes(search.toLowerCase()) ||
-      r.id.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
+  // Filtered rows
+  const filteredData = data.filter((row) => {
+    const projectMatch = selectedProject === "All" || row.project === selectedProject;
+    const statusMatch = selectedStatus === "All" || row.status === selectedStatus;
+    return projectMatch && statusMatch;
   });
+
+  // Calculate approved total for the HeroNumber dynamically
+  const approvedTotal = data
+    .filter((row) => row.status === "Approved")
+    .reduce((sum, row) => sum + row.costImpact, 0);
+
+  // Formatting approved total for HeroNumber
+  const formattedTotal = `₹${approvedTotal.toLocaleString("en-IN")}`;
+
+  // Unique project names for filter dropdown
+  const uniqueProjects = Array.from(new Set(data.map((item) => item.project)));
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ShieldAlert className="h-6 w-6 text-teal-400" />
-            ScopeShield
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Track and authorize change requests before scope creep drains your profitability.
-          </p>
-        </div>
+      {/* Top Section */}
+      <div className="flex justify-between items-start">
+        <HeroNumber value={formattedTotal} label="in approved change orders" />
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 hover:bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition-colors"
+          className="bg-accent hover:bg-accent-hover text-white text-[13px] px-4 py-2 rounded-sm font-medium transition-colors cursor-pointer"
         >
-          <Plus className="h-4 w-4" />
-          Log Change Request
+          + Add Change Order
         </button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Total Approved Expansion</span>
-            <div className="p-2 rounded-lg bg-emerald-400/10">
-              <DollarSign className="h-4 w-4 text-emerald-400" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-100">
-            ₹{approvedTotal.toLocaleString()}
-          </p>
-          <p className="mt-1 text-xs text-emerald-400">Successfully billed to clients</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Pending Authorization</span>
-            <div className="p-2 rounded-lg bg-yellow-400/10">
-              <Clock className="h-4 w-4 text-yellow-400" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-100">
-            ₹{pendingTotal.toLocaleString()}
-          </p>
-          <p className="mt-1 text-xs text-yellow-400">Awaiting client approval signature</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Approved Schedule Expansion</span>
-            <div className="p-2 rounded-lg bg-blue-400/10">
-              <Clock className="h-4 w-4 text-blue-400" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-100">
-            +{approvedTimeImpact} Days
-          </p>
-          <p className="mt-1 text-xs text-blue-400">Buffer officially added to deadlines</p>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-900 p-4 rounded-xl border border-slate-800">
-        <div className="flex gap-1.5 self-start sm:self-center overflow-x-auto w-full sm:w-auto">
-          {(["All", "Pending", "Approved", "Rejected"] as const).map((opt) => (
-            <button
-              key={opt}
-              onClick={() => setFilter(opt)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                filter === opt
-                  ? "bg-teal-500 text-slate-950"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-              }`}
-            >
-              {opt}
-            </button>
+      {/* Filter bar */}
+      <div className="flex gap-3 justify-start items-center">
+        <select
+          value={selectedProject}
+          onChange={(e) => setSelectedProject(e.target.value)}
+          className="bg-surface border border-border text-text text-[13px] py-1.5 px-3 rounded-sm focus:outline-none focus:border-accent"
+          style={{ boxShadow: "none" }}
+        >
+          <option value="All">All Projects</option>
+          {uniqueProjects.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
           ))}
-        </div>
+        </select>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search change requests..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-teal-500"
-          />
-        </div>
+        <select
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+          className="bg-surface border border-border text-text text-[13px] py-1.5 px-3 rounded-sm focus:outline-none focus:border-accent"
+          style={{ boxShadow: "none" }}
+        >
+          <option value="All">All Statuses</option>
+          <option value="Approved">Approved</option>
+          <option value="Pending">Pending</option>
+          <option value="Rejected">Rejected</option>
+        </select>
       </div>
 
-      {/* Request Table */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+      {/* Table Container */}
+      <div className="bg-surface border border-border rounded-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
+          <table className="w-full text-left border-collapse text-[13px]">
             <thead>
-              <tr className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800">
-                <th className="p-4">ID</th>
-                <th className="p-4">Project & Client</th>
-                <th className="p-4">Request Summary</th>
-                <th className="p-4 text-right">Value</th>
-                <th className="p-4 text-center">Impact</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-right">Actions</th>
+              <tr className="border-b border-border bg-surface-elevated text-text-muted font-medium">
+                <th className="p-3.5">Project</th>
+                <th className="p-3.5">Description</th>
+                <th className="p-3.5 text-right">Cost Impact</th>
+                <th className="p-3.5 text-center">Status</th>
+                <th className="p-3.5 text-right">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredRequests.length === 0 ? (
+            <tbody className="divide-y divide-border/40">
+              {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500 text-sm">
-                    No change requests found.
+                  <td colSpan={5} className="p-8 text-center text-text-faint">
+                    No change orders match the selected filters.
                   </td>
                 </tr>
               ) : (
-                filteredRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-slate-800/20 transition-colors">
-                    <td className="p-4 font-mono text-xs text-slate-400">{request.id}</td>
-                    <td className="p-4">
-                      <div className="font-semibold text-slate-200">{request.project}</div>
-                      <div className="text-xs text-slate-400">{request.client}</div>
+                filteredData.map((row) => (
+                  <tr key={row.id} className="hover:bg-surface-elevated/40 transition-colors">
+                    <td className="p-3.5 font-medium text-text">{row.project}</td>
+                    <td className="p-3.5 text-text-muted">{row.description}</td>
+                    <td className="p-3.5 text-right font-mono text-text">
+                      ₹{row.costImpact.toLocaleString("en-IN")}
                     </td>
-                    <td className="p-4 max-w-xs">
-                      <div className="font-medium text-slate-200 line-clamp-1">{request.summary}</div>
-                      <div className="text-xs text-slate-400 line-clamp-2 mt-0.5">{request.description}</div>
-                    </td>
-                    <td className="p-4 text-right font-semibold text-slate-200">
-                      ₹{request.amount.toLocaleString()}
-                    </td>
-                    <td className="p-4 text-center text-xs text-slate-300">
-                      {request.timeImpactDays} days
-                    </td>
-                    <td className="p-4 text-center">
+                    <td className="p-3.5 text-center">
                       <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${
-                          request.status === "Approved"
-                            ? "bg-emerald-400/10 text-emerald-400"
-                            : request.status === "Pending"
-                            ? "bg-yellow-400/10 text-yellow-400"
-                            : "bg-red-400/10 text-red-400"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                          row.status === "Approved"
+                            ? "bg-accent/10 text-accent border border-accent/20"
+                            : row.status === "Pending"
+                            ? "bg-warning/10 text-warning border border-warning/20"
+                            : "bg-danger/10 text-danger border border-danger/20"
                         }`}
                       >
-                        {request.status}
+                        {row.status}
                       </span>
                     </td>
-                    <td className="p-4 text-right">
-                      {request.status === "Pending" ? (
-                        <div className="flex justify-end gap-1.5">
-                          <button
-                            onClick={() => handleApprove(request.id)}
-                            title="Approve Change Request"
-                            className="p-1 rounded bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 transition-colors"
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleReject(request.id)}
-                            title="Reject Change Request"
-                            className="p-1 rounded bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-slate-950 transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-slate-500 italic">No action required</span>
-                      )}
+                    <td className="p-3.5 text-right font-mono text-text-muted">
+                      {row.date}
                     </td>
                   </tr>
                 ))
@@ -328,110 +204,103 @@ export default function ScopeShieldPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Summary Row */}
+      <div className="text-right text-[13px] text-text-muted font-medium pr-2">
+        Total approved: <span className="text-text font-semibold">{formattedTotal}</span>
+      </div>
+
+      {/* Add Change Order Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-surface-elevated border border-border rounded-md p-6 shadow-2xl relative">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              className="absolute right-4 top-4 text-text-muted hover:text-text cursor-pointer transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
 
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-1">
-              <PlusCircle className="h-5 w-5 text-teal-400" />
-              Log Scope Change Request
+            <h3 className="text-[16px] font-semibold text-text mb-4">
+              Add Scope Change Order
             </h3>
-            <p className="text-xs text-slate-400 mb-4">
-              Enter details for the new scope items. Once logged, you can track or approve them.
-            </p>
 
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Client Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newClient}
-                    onChange={(e) => setNewClient(e.target.value)}
-                    placeholder="e.g. Sunrise Exports"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Project Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newProject}
-                    onChange={(e) => setNewProject(e.target.value)}
-                    placeholder="e.g. Dashboard Redesign"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
+            <form onSubmit={handleAddChangeOrder} className="space-y-4 text-[13px]">
+              <div>
+                <label className="block text-text-muted font-medium mb-1">Project</label>
+                <select
+                  value={projectInput}
+                  onChange={(e) => setProjectInput(e.target.value)}
+                  className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent"
+                >
+                  <option value="Sunrise Portal">Sunrise Portal</option>
+                  <option value="Neon Labs">Neon Labs</option>
+                  <option value="Prism Media">Prism Media</option>
+                  <option value="Aether Branding">Aether Branding</option>
+                  <option value="TechFlow API">TechFlow API</option>
+                </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Summary *</label>
+                <label className="block text-text-muted font-medium mb-1">Description</label>
                 <input
                   type="text"
                   required
-                  value={newSummary}
-                  onChange={(e) => setNewSummary(e.target.value)}
-                  placeholder="e.g. Integrate CSV Analytics Exports"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+                  placeholder="e.g. Extra reports page setup"
+                  value={descInput}
+                  onChange={(e) => setDescInput(e.target.value)}
+                  className="w-full bg-surface border border-border rounded-sm p-2 text-text placeholder:text-text-faint focus:outline-none focus:border-accent"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Description</label>
-                <textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Detailed breakdown of client changes and why they are out of the original project scope..."
-                  rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500 resize-none"
+                <label className="block text-text-muted font-medium mb-1">Cost Impact (₹)</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="e.g. 50000"
+                  value={costInput}
+                  onChange={(e) => setCostInput(e.target.value)}
+                  className="w-full bg-surface border border-border rounded-sm p-2 text-text placeholder:text-text-faint focus:outline-none focus:border-accent font-mono"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Financial Impact (₹)</label>
-                  <input
-                    type="number"
-                    value={newAmount}
-                    onChange={(e) => setNewAmount(e.target.value)}
-                    placeholder="e.g. 20000"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
+                  <label className="block text-text-muted font-medium mb-1">Status</label>
+                  <select
+                    value={statusInput}
+                    onChange={(e) => setStatusInput(e.target.value as any)}
+                    className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Timeline Impact (Days)</label>
+                  <label className="block text-text-muted font-medium mb-1">Date</label>
                   <input
-                    type="number"
-                    value={newTimeImpact}
-                    onChange={(e) => setNewTimeImpact(e.target.value)}
-                    placeholder="e.g. 4"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+                    type="date"
+                    value={dateInput}
+                    onChange={(e) => setDateInput(e.target.value)}
+                    className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent text-[12px]"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                  className="px-4 py-2 rounded-sm bg-surface border border-border text-text hover:bg-surface-elevated transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-xs font-semibold text-white transition-colors"
+                  className="px-4 py-2 rounded-sm bg-accent hover:bg-accent-hover text-white transition-colors cursor-pointer font-medium"
                 >
-                  Log Change Request
+                  Log Change Order
                 </button>
               </div>
             </form>

@@ -1,7 +1,7 @@
 {
-  "name": "mypersonal",
+  "name": "verivo",
   "version": "1.0.0",
-  "description": "",
+  "description": "Verivo – Client-safe project management",
   "main": "fix.js",
   "directories": {
     "test": "tests"
@@ -14,17 +14,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rahulraabta/pactly.git"
+    "url": "git+https://github.com/rahulraabta/verivo.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/rahulraabta/pactly/issues"
+    "url": "https://github.com/rahulraabta/verivo/issues"
   },
-  "homepage": "https://github.com/rahulraabta/pactly#readme",
+  "homepage": "https://github.com/rahulraabta/verivo#readme",
   "dependencies": {
+    "@prisma/client": "^6.0.0",
     "@tailwindcss/postcss": "^4.3.0",
     "next": "^16.2.6",
     "postcss": "^8.5.14",
@@ -39,6 +40,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "lucide-react": "^1.14.0",
+    "prisma": "^6.0.0",
     "typescript": "^6.0.3"
   }
 }
