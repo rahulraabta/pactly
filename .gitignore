@@ -1,16 +1,27 @@
-# Dependencies
+﻿# Dependencies
 node_modules/
-__pycache__/
-.venv/
-.env
-.streamlit/secrets.toml
 
-# Config / Keys
-*.txt
-*.jsonl
+# Next.js build & cache
+.next/
+out/
 
-# Build files
+# Build outputs
 dist/
 build/
 
-.streamlit/secrets.toml
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python
+__pycache__/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+*.txt
