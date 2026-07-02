@@ -18,52 +18,107 @@ model UserAIConfig {
 }
 
 model Client {
-  id        String    @id @default(cuid())
-  name      String
-  company   String
-  projects  Project[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  name         String
+  company      String
+  contactName  String    @default("")
+  healthScore  Int       @default(80)
+  lastActivity DateTime  @default(now())
+  riskFlags    String    @default("[]")
+  projects     Project[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Project {
-  id          String      @id @default(cuid())
-  name        String
-  status      String      // e.g. "Active", "At-Risk", "Completed"
-  health      String      // e.g. "Healthy", "Warning", "Critical"
-  burnRate    Float       // e.g. 74.0
-  clientId    String
-  client      Client      @relation(fields: [clientId], references: [id])
-  milestones  Milestone[]
-  activities  Activity[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String         @id @default(cuid())
+  name          String
+  status        String
+  health        String
+  burnRate      Float
+  budget        Float          @default(0)
+  spent         Float          @default(0)
+  clientId      String
+  client        Client         @relation(fields: [clientId], references: [id])
+  milestones    Milestone[]
+  activities    Activity[]
+  delayEntries  DelayEntry[]
+  changeOrders  ChangeOrder[]
+  boardTasks    BoardTask[]
+  retroEntries  RetroEntry[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Milestone {
-  id          String    @id @default(cuid())
-  title       String
-  amount      Float
-  dueDate     DateTime
-  status      String    // e.g. "Pending", "Approved", "Paid"
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  amount    Float
+  dueDate   DateTime
+  status    String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Activity {
-  id          String    @id @default(cuid())
-  action      String
-  projectId   String?
-  project     Project?  @relation(fields: [projectId], references: [id])
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  action    String
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model RevenueEntry {
-  id          String    @id @default(cuid())
-  month       String    // e.g. "Jan", "Feb"
-  year        Int       // e.g. 2026
-  revenue     Float
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  month     String
+  year      Int
+  revenue   Float
+  createdAt DateTime @default(now())
+}
+
+model DelayEntry {
+  id           String   @id @default(cuid())
+  reason       String
+  days         Int
+  impactAmount Float
+  severity     String
+  date         DateTime
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model ChangeOrder {
+  id          String   @id @default(cuid())
+  description String
+  costImpact  Float
+  status      String
+  date        DateTime
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model BoardTask {
+  id        String   @id @default(cuid())
+  title     String
+  priority  String
+  dueDate   DateTime
+  column    String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model RetroEntry {
+  id              String @id @default(cuid())
+  quoted          Float
+  actual          Float
+  recommendedRate Float
+  notes           String
+  projectId       String
+  project         Project @relation(fields: [projectId], references: [id])
+  createdAt       DateTime @default(now())
 }

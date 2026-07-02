@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { HeroNumber } from "@/components/ui/hero-number";
 import { KpiCard } from "@/components/ui/kpi-card";
-import { Wallet, TrendingUp, Activity } from "lucide-react";
+import { Wallet, TrendingUp, Activity, Loader2 } from "lucide-react";
+import { getRunways } from "@/actions/runway";
 
 interface ProjectRunway {
   id: string;
@@ -15,72 +16,45 @@ interface ProjectRunway {
   risk: "Safe" | "Warning" | "Critical";
 }
 
-const initialMockRows: ProjectRunway[] = [
-  {
-    id: "P1",
-    project: "Sunrise Portal",
-    budget: 300000,
-    spent: 260000,
-    remaining: 40000,
-    burnPercentage: 86.67,
-    risk: "Critical",
-  },
-  {
-    id: "P2",
-    project: "Neon Labs",
-    budget: 250000,
-    spent: 210000,
-    remaining: 40000,
-    burnPercentage: 84.0,
-    risk: "Critical",
-  },
-  {
-    id: "P3",
-    project: "Prism Media",
-    budget: 180000,
-    spent: 145000,
-    remaining: 35000,
-    burnPercentage: 80.56,
-    risk: "Critical",
-  },
-  {
-    id: "P4",
-    project: "Aether Branding",
-    budget: 120000,
-    spent: 72000,
-    remaining: 48000,
-    burnPercentage: 60.0,
-    risk: "Warning",
-  },
-  {
-    id: "P5",
-    project: "TechFlow API",
-    budget: 80000,
-    spent: 32000,
-    remaining: 48000,
-    burnPercentage: 40.0,
-    risk: "Safe",
-  },
-];
-
 export default function RunwayPage() {
-  const [projects, setProjects] = useState<ProjectRunway[]>(initialMockRows);
-  const [widths, setWidths] = useState<number[]>(initialMockRows.map(() => 0));
+  const [projects, setProjects] = useState<ProjectRunway[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [widths, setWidths] = useState<number[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await getRunways();
+        if (res.success && res.data) {
+          setProjects(res.data);
+          // Set widths to 0 initially for progress bar animation
+          setWidths(res.data.map(() => 0));
+        }
+      } catch (err) {
+        console.error("Failed to load runway data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // Trigger smooth enter transition for progress bars
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setWidths(projects.map((p) => p.burnPercentage));
-    }, 100);
-    return () => clearTimeout(timer);
+    if (projects.length > 0) {
+      const timer = setTimeout(() => {
+        setWidths(projects.map((p) => p.burnPercentage));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
   }, [projects]);
 
   // Aggregated figures
   const totalBudget = projects.reduce((sum, p) => sum + p.budget, 0);
   const totalSpent = projects.reduce((sum, p) => sum + p.spent, 0);
-  const avgBurnRate = parseFloat(
+  const avgBurnRate = totalBudget > 0 ? parseFloat(
     ((totalSpent / totalBudget) * 100).toFixed(1)
-  );
+  ) : 0;
 
   // Dynamic count of projects above 75% burn rate
   const criticalBurnCount = projects.filter((p) => p.burnPercentage > 75).length;
@@ -101,6 +75,14 @@ export default function RunwayPage() {
         return "bg-danger/10 text-danger border border-danger/20";
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -145,44 +127,52 @@ export default function RunwayPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
-              {projects.map((p, index) => (
-                <tr key={p.id} className="hover:bg-surface-elevated/40 transition-colors">
-                  <td className="p-3.5 font-medium text-text">{p.project}</td>
-                  <td className="p-3.5 text-right font-mono text-text">
-                    ₹{p.budget.toLocaleString("en-IN")}
-                  </td>
-                  <td className="p-3.5 text-right font-mono text-text">
-                    ₹{p.spent.toLocaleString("en-IN")}
-                  </td>
-                  <td className="p-3.5 text-right font-mono text-text-muted">
-                    ₹{p.remaining.toLocaleString("en-IN")}
-                  </td>
-                  <td className="p-3.5">
-                    <div className="space-y-1">
-                      <div className="flex justify-between font-mono text-[11px] text-text-muted">
-                        <span>{p.burnPercentage.toFixed(1)}%</span>
-                      </div>
-                      <div className="w-full bg-surface-elevated rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-[600ms] ease-out ${getBurnBarColor(
-                            p.burnPercentage
-                          )}`}
-                          style={{ width: `${widths[index]}%` }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${getRiskBadgeClass(
-                        p.risk
-                      )}`}
-                    >
-                      {p.risk}
-                    </span>
+              {projects.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-text-faint">
+                    No project runway data available.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                projects.map((p, index) => (
+                  <tr key={p.id} className="hover:bg-surface-elevated/40 transition-colors">
+                    <td className="p-3.5 font-medium text-text">{p.project}</td>
+                    <td className="p-3.5 text-right font-mono text-text">
+                      ₹{p.budget.toLocaleString("en-IN")}
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-text">
+                      ₹{p.spent.toLocaleString("en-IN")}
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-text-muted">
+                      ₹{p.remaining.toLocaleString("en-IN")}
+                    </td>
+                    <td className="p-3.5">
+                      <div className="space-y-1">
+                        <div className="flex justify-between font-mono text-[11px] text-text-muted">
+                          <span>{p.burnPercentage.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-surface-elevated rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-[600ms] ease-out ${getBurnBarColor(
+                              p.burnPercentage
+                            )}`}
+                            style={{ width: `${widths[index] || 0}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${getRiskBadgeClass(
+                          p.risk
+                        )}`}
+                      >
+                        {p.risk}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

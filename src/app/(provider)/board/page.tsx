@@ -1,103 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { getBoardData, updateTaskColumn } from "@/actions/board";
 
 interface Task {
   id: string;
-  project: "Sunrise Portal" | "Neon Labs" | "Prism Media";
+  projectId: string;
+  project: string;
   title: string;
   priority: "Low" | "Medium" | "High" | "Urgent";
   dueDate: string;
   column: "Backlog" | "In Progress" | "Review" | "Done";
 }
 
-const initialTasks: Task[] = [
-  // Backlog
-  {
-    id: "T-1",
-    project: "Sunrise Portal",
-    title: "Database migration checks and schema syncing",
-    priority: "Low",
-    dueDate: "Jun 12, 2026",
-    column: "Backlog",
-  },
-  {
-    id: "T-2",
-    project: "Prism Media",
-    title: "Figma wireframe assets export and localization prep",
-    priority: "Medium",
-    dueDate: "Jun 18, 2026",
-    column: "Backlog",
-  },
-  // In Progress
-  {
-    id: "T-3",
-    project: "Neon Labs",
-    title: "Implement biometrics login FaceID/TouchID checks",
-    priority: "High",
-    dueDate: "Jun 10, 2026",
-    column: "In Progress",
-  },
-  {
-    id: "T-4",
-    project: "Prism Media",
-    title: "Checkout payment flow webhook validation",
-    priority: "Urgent",
-    dueDate: "Jun 08, 2026",
-    column: "In Progress",
-  },
-  // Review
-  {
-    id: "T-5",
-    project: "Sunrise Portal",
-    title: "Security compliance auditing and SSL setup",
-    priority: "High",
-    dueDate: "Jun 05, 2026",
-    column: "Review",
-  },
-  {
-    id: "T-6",
-    project: "Neon Labs",
-    title: "API endpoint staging documentation",
-    priority: "Low",
-    dueDate: "Jun 06, 2026",
-    column: "Review",
-  },
-  // Done
-  {
-    id: "T-7",
-    project: "Sunrise Portal",
-    title: "Initial workspace scaffolding and routing setup",
-    priority: "Low",
-    dueDate: "May 25, 2026",
-    column: "Done",
-  },
-  {
-    id: "T-8",
-    project: "Prism Media",
-    title: "Landing page layout design signoff",
-    priority: "Medium",
-    dueDate: "May 28, 2026",
-    column: "Done",
-  },
-];
-
 export default function BoardPage() {
-  const [selectedProject, setSelectedProject] = useState<
-    "Sunrise Portal" | "Neon Labs" | "Prism Media"
-  >("Sunrise Portal");
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [selectedProject, setSelectedProject] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const columnsList: Task["column"][] = ["Backlog", "In Progress", "Review", "Done"];
 
-  // Filter tasks based on selected project
+  const loadData = async () => {
+    try {
+      const res = await getBoardData();
+      if (res.success && res.data) {
+        setTasks(res.data.tasks);
+        setProjects(res.data.projects);
+        if (res.data.projects.length > 0 && !selectedProject) {
+          setSelectedProject(res.data.projects[0].name);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load board data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Filter tasks based on selected project name
   const filteredTasks = tasks.filter((t) => t.project === selectedProject);
 
-  const handleMoveTask = (taskId: string, newCol: Task["column"]) => {
-    console.log(`Move task ${taskId} to → ${newCol}`);
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, column: newCol } : t))
-    );
+  const handleMoveTask = async (taskId: string, newCol: Task["column"]) => {
+    try {
+      // Optimistic update
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, column: newCol } : t))
+      );
+      
+      const res = await updateTaskColumn(taskId, newCol);
+      if (!res.success) {
+        alert(res.error || "Failed to update task column");
+        // Revert on error
+        await loadData();
+      }
+    } catch (err) {
+      console.error("Error moving task", err);
+      await loadData();
+    }
   };
 
   const getPriorityStyle = (priority: Task["priority"]) => {
@@ -113,23 +78,29 @@ export default function BoardPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Controls */}
       <div className="flex justify-between items-center">
         <select
           value={selectedProject}
-          onChange={(e) =>
-            setSelectedProject(
-              e.target.value as "Sunrise Portal" | "Neon Labs" | "Prism Media"
-            )
-          }
+          onChange={(e) => setSelectedProject(e.target.value)}
           className="bg-surface border border-border text-text text-[13px] py-1.5 px-3 rounded-sm focus:outline-none focus:border-accent cursor-pointer"
           style={{ boxShadow: "none" }}
         >
-          <option value="Sunrise Portal">Sunrise Portal</option>
-          <option value="Neon Labs">Neon Labs</option>
-          <option value="Prism Media">Prism Media</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.name}>
+              {p.name}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -192,7 +163,7 @@ export default function BoardPage() {
                       {/* Dropdown controls */}
                       <div className="pt-2 border-t border-border/20 flex justify-between items-center">
                         <span className="text-[10px] text-text-faint font-mono">
-                          ID: {task.id}
+                          ID: {task.id.slice(0, 8)}
                         </span>
                         <select
                           value=""

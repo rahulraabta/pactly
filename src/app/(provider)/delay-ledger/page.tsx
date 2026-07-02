@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HeroNumber } from "@/components/ui/hero-number";
-import { Plus, X, Calendar } from "lucide-react";
+import { Plus, X, Calendar, Loader2 } from "lucide-react";
+import { getDelays, logDelay } from "@/actions/delay-ledger";
 
 interface DelayEntry {
   id: string;
@@ -14,89 +15,75 @@ interface DelayEntry {
   date: string;
 }
 
-const initialMockEntries: DelayEntry[] = [
-  {
-    id: "DL-1",
-    project: "Sunrise Portal",
-    reason: "Delayed feedback on dashboard wireframes & core portal layouts",
-    days: 12,
-    impactAmount: 85000,
-    severity: "High",
-    date: "2026-05-28",
-  },
-  {
-    id: "DL-2",
-    project: "Neon Labs",
-    reason: "Client API credential handover and sandbox access latency",
-    days: 8,
-    impactAmount: 40000,
-    severity: "Medium",
-    date: "2026-05-24",
-  },
-  {
-    id: "DL-3",
-    project: "Prism Media",
-    reason: "Marketing copy assets & product high-res media files overdue",
-    days: 6,
-    impactAmount: 25000,
-    severity: "Medium",
-    date: "2026-05-20",
-  },
-  {
-    id: "DL-4",
-    project: "Aether Branding",
-    reason: "Brand focus group alignment workshop rescheduling requested",
-    days: 5,
-    impactAmount: 15000,
-    severity: "Low",
-    date: "2026-05-15",
-  },
-  {
-    id: "DL-5",
-    project: "TechFlow API",
-    reason: "Partner API staging access verification bottleneck",
-    days: 3,
-    impactAmount: 0,
-    severity: "Low",
-    date: "2026-05-10",
-  },
-];
-
 export default function DelayLedgerPage() {
-  const [entries, setEntries] = useState<DelayEntry[]>(initialMockEntries);
+  const [entries, setEntries] = useState<DelayEntry[]>([]);
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form states for adding new delay log
-  const [projectInput, setProjectInput] = useState("Sunrise Portal");
+  const [projectInput, setProjectInput] = useState("");
   const [reasonInput, setReasonInput] = useState("");
   const [daysInput, setDaysInput] = useState("");
   const [impactInput, setImpactInput] = useState("");
   const [severityInput, setSeverityInput] = useState<"Low" | "Medium" | "High">("Low");
   const [dateInput, setDateInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogDelay = (e: React.FormEvent) => {
+  const loadData = async () => {
+    try {
+      const res = await getDelays();
+      if (res.success && res.data) {
+        setEntries(res.data.entries);
+        setProjects(res.data.projects);
+        if (res.data.projects.length > 0 && !projectInput) {
+          setProjectInput(res.data.projects[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load delays data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleLogDelay = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reasonInput || !daysInput) return;
+    if (!projectInput || !reasonInput || !daysInput || isSubmitting) return;
 
-    const newEntry: DelayEntry = {
-      id: `DL-${entries.length + 1}`,
-      project: projectInput,
-      reason: reasonInput,
-      days: parseInt(daysInput) || 0,
-      impactAmount: parseFloat(impactInput) || 0,
-      severity: severityInput,
-      date: dateInput || new Date().toISOString().split("T")[0],
-    };
+    setIsSubmitting(true);
+    try {
+      const res = await logDelay({
+        projectId: projectInput,
+        reason: reasonInput,
+        days: parseInt(daysInput) || 0,
+        impactAmount: parseFloat(impactInput) || 0,
+        severity: severityInput,
+        date: dateInput || new Date().toISOString().split("T")[0],
+      });
 
-    setEntries([newEntry, ...entries]);
-    setIsModalOpen(false);
-
-    // Reset inputs
-    setReasonInput("");
-    setDaysInput("");
-    setImpactInput("");
-    setSeverityInput("Low");
-    setDateInput("");
+      if (res.success) {
+        // Reload table
+        await loadData();
+        setIsModalOpen(false);
+        // Reset inputs
+        setReasonInput("");
+        setDaysInput("");
+        setImpactInput("");
+        setSeverityInput("Low");
+        setDateInput("");
+      } else {
+        alert(res.error || "Failed to log delay");
+      }
+    } catch (err) {
+      console.error("Error logging delay", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Calculate total delay days dynamically
@@ -114,13 +101,26 @@ export default function DelayLedgerPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Section */}
       <div className="flex justify-between items-start">
         <HeroNumber value={`${totalDays} days`} label="total delay across all projects" />
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            if (projects.length > 0) {
+              setProjectInput(projects[0].id);
+            }
+            setIsModalOpen(true);
+          }}
           className="bg-accent hover:bg-accent-hover text-white text-[13px] px-4 py-2 rounded-sm font-medium transition-colors cursor-pointer"
         >
           + Log Delay
@@ -129,56 +129,60 @@ export default function DelayLedgerPage() {
 
       {/* Timeline container */}
       <div className="max-w-3xl ml-2 relative border-l border-border pl-6 space-y-8 py-2">
-        {entries.map((entry) => {
-          const styleSev = getSeverityStyle(entry.severity);
-          return (
-            <div key={entry.id} className="relative group">
-              {/* Absolute dot directly centered on the line */}
-              <div
-                className="absolute top-1.5 left-[-28px] w-2 h-2 rounded-full bg-accent ring-4 ring-bg transition-transform duration-200 group-hover:scale-125"
-                style={{ left: "-28px" }}
-              />
+        {entries.length === 0 ? (
+          <div className="text-text-faint text-[13px] italic p-4 pl-0">No delays logged yet.</div>
+        ) : (
+          entries.map((entry) => {
+            const styleSev = getSeverityStyle(entry.severity);
+            return (
+              <div key={entry.id} className="relative group">
+                {/* Absolute dot directly centered on the line */}
+                <div
+                  className="absolute top-1.5 left-[-28px] w-2 h-2 rounded-full bg-accent ring-4 ring-bg transition-transform duration-200 group-hover:scale-125"
+                  style={{ left: "-28px" }}
+                />
 
-              {/* Box container for the timeline content */}
-              <div className="bg-surface border border-border rounded-md p-4 transition-all duration-200 hover:border-border/80">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[14px] font-semibold text-text">
-                      {entry.project}
-                    </span>
-                    <span className="bg-surface-elevated border border-border text-[11px] font-mono text-text-muted px-2 py-0.5 rounded-full">
-                      {entry.days} days
-                    </span>
+                {/* Box container for the timeline content */}
+                <div className="bg-surface border border-border rounded-md p-4 transition-all duration-200 hover:border-border/80">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] font-semibold text-text">
+                        {entry.project}
+                      </span>
+                      <span className="bg-surface-elevated border border-border text-[11px] font-mono text-text-muted px-2 py-0.5 rounded-full">
+                        {entry.days} days
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span
+                        style={styleSev}
+                        className="px-2 py-0.5 rounded-full font-medium"
+                      >
+                        {entry.severity}
+                      </span>
+                      <span className="text-text-muted font-mono flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> {entry.date}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px]">
-                    <span
-                      style={styleSev}
-                      className="px-2 py-0.5 rounded-full font-medium"
-                    >
-                      {entry.severity}
-                    </span>
-                    <span className="text-text-muted font-mono flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {entry.date}
-                    </span>
-                  </div>
+
+                  <p className="text-[13px] text-text-muted leading-relaxed">
+                    {entry.reason}
+                  </p>
+
+                  {entry.impactAmount > 0 && (
+                    <div className="mt-3 text-[12px] text-text-muted font-medium border-t border-border/20 pt-2 flex justify-between items-center">
+                      <span>Project financial buffer protection:</span>
+                      <span className="text-text font-mono font-semibold">
+                        ₹{entry.impactAmount.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  )}
                 </div>
-
-                <p className="text-[13px] text-text-muted leading-relaxed">
-                  {entry.reason}
-                </p>
-
-                {entry.impactAmount > 0 && (
-                  <div className="mt-3 text-[12px] text-text-muted font-medium border-t border-border/20 pt-2 flex justify-between items-center">
-                    <span>Project financial buffer protection:</span>
-                    <span className="text-text font-mono font-semibold">
-                      ₹{entry.impactAmount.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       {/* Log Delay Modal */}
@@ -204,11 +208,11 @@ export default function DelayLedgerPage() {
                   onChange={(e) => setProjectInput(e.target.value)}
                   className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent"
                 >
-                  <option value="Sunrise Portal">Sunrise Portal</option>
-                  <option value="Neon Labs">Neon Labs</option>
-                  <option value="Prism Media">Prism Media</option>
-                  <option value="Aether Branding">Aether Branding</option>
-                  <option value="TechFlow API">TechFlow API</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -282,8 +286,10 @@ export default function DelayLedgerPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-sm bg-accent hover:bg-accent-hover text-white transition-colors cursor-pointer font-medium"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 rounded-sm bg-accent hover:bg-accent-hover text-white transition-colors cursor-pointer font-medium disabled:opacity-50 flex items-center gap-1.5"
                 >
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                   Register Delay
                 </button>
               </div>

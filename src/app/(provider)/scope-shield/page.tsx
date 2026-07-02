@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HeroNumber } from "@/components/ui/hero-number";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
+import { getChangeOrders, addChangeOrder } from "@/actions/scope-shield";
 
 interface ChangeOrder {
   id: string;
+  projectId: string;
   project: string;
   description: string;
   costImpact: number;
@@ -13,83 +15,74 @@ interface ChangeOrder {
   date: string;
 }
 
-const initialMockData: ChangeOrder[] = [
-  {
-    id: "CO-1",
-    project: "Sunrise Portal",
-    description: "Extra database backup replication node setup",
-    costImpact: 45000,
-    status: "Approved",
-    date: "2026-05-28",
-  },
-  {
-    id: "CO-2",
-    project: "Neon Labs",
-    description: "Biometrics login support (FaceID/Fingerprint)",
-    costImpact: 60000,
-    status: "Approved",
-    date: "2026-05-24",
-  },
-  {
-    id: "CO-3",
-    project: "Prism Media",
-    description: "Multi-currency checkout localization",
-    costImpact: 50000,
-    status: "Pending",
-    date: "2026-05-20",
-  },
-  {
-    id: "CO-4",
-    project: "Aether Branding",
-    description: "Animated logo variation iterations",
-    costImpact: 25000,
-    status: "Rejected",
-    date: "2026-05-15",
-  },
-  {
-    id: "CO-5",
-    project: "Sunrise Portal",
-    description: "Stripe invoice recurring sub-webhooks integration",
-    costImpact: 140000,
-    status: "Approved",
-    date: "2026-05-10",
-  },
-];
-
 export default function ScopeShieldPage() {
-  const [data, setData] = useState<ChangeOrder[]>(initialMockData);
+  const [data, setData] = useState<ChangeOrder[]>([]);
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [selectedProject, setSelectedProject] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form states for new change order
-  const [projectInput, setProjectInput] = useState("Sunrise Portal");
+  const [projectInput, setProjectInput] = useState("");
   const [descInput, setDescInput] = useState("");
   const [costInput, setCostInput] = useState("");
   const [statusInput, setStatusInput] = useState<"Approved" | "Pending" | "Rejected">("Pending");
   const [dateInput, setDateInput] = useState("");
 
-  const handleAddChangeOrder = (e: React.FormEvent) => {
+  const loadData = async () => {
+    try {
+      const res = await getChangeOrders();
+      if (res.success && res.data) {
+        setData(res.data.changeOrders);
+        setProjects(res.data.projects);
+        if (res.data.projects.length > 0 && !projectInput) {
+          setProjectInput(res.data.projects[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load change orders", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleAddChangeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!descInput || !costInput) return;
+    if (!projectInput || !descInput || !costInput || isSubmitting) return;
 
-    const newOrder: ChangeOrder = {
-      id: `CO-${data.length + 1}`,
-      project: projectInput,
-      description: descInput,
-      costImpact: parseFloat(costInput) || 0,
-      status: statusInput,
-      date: dateInput || new Date().toISOString().split("T")[0],
-    };
+    setIsSubmitting(true);
+    try {
+      const res = await addChangeOrder({
+        projectId: projectInput,
+        description: descInput,
+        costImpact: parseFloat(costInput) || 0,
+        status: statusInput,
+        date: dateInput || new Date().toISOString().split("T")[0],
+      });
 
-    setData([newOrder, ...data]);
-    setIsModalOpen(false);
-
-    // Reset fields
-    setDescInput("");
-    setCostInput("");
-    setStatusInput("Pending");
-    setDateInput("");
+      if (res.success) {
+        await loadData();
+        setIsModalOpen(false);
+        // Reset fields
+        setDescInput("");
+        setCostInput("");
+        setStatusInput("Pending");
+        setDateInput("");
+      } else {
+        alert(res.error || "Failed to add change order");
+      }
+    } catch (err) {
+      console.error("Error adding change order", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Filtered rows
@@ -110,13 +103,26 @@ export default function ScopeShieldPage() {
   // Unique project names for filter dropdown
   const uniqueProjects = Array.from(new Set(data.map((item) => item.project)));
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Section */}
       <div className="flex justify-between items-start">
         <HeroNumber value={formattedTotal} label="in approved change orders" />
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            if (projects.length > 0) {
+              setProjectInput(projects[0].id);
+            }
+            setIsModalOpen(true);
+          }}
           className="bg-accent hover:bg-accent-hover text-white text-[13px] px-4 py-2 rounded-sm font-medium transition-colors cursor-pointer"
         >
           + Add Change Order
@@ -232,11 +238,11 @@ export default function ScopeShieldPage() {
                   onChange={(e) => setProjectInput(e.target.value)}
                   className="w-full bg-surface border border-border rounded-sm p-2 text-text focus:outline-none focus:border-accent"
                 >
-                  <option value="Sunrise Portal">Sunrise Portal</option>
-                  <option value="Neon Labs">Neon Labs</option>
-                  <option value="Prism Media">Prism Media</option>
-                  <option value="Aether Branding">Aether Branding</option>
-                  <option value="TechFlow API">TechFlow API</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -298,8 +304,10 @@ export default function ScopeShieldPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-sm bg-accent hover:bg-accent-hover text-white transition-colors cursor-pointer font-medium"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 rounded-sm bg-accent hover:bg-accent-hover text-white transition-colors cursor-pointer font-medium disabled:opacity-50 flex items-center gap-1.5"
                 >
+                  {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                   Log Change Order
                 </button>
               </div>

@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HeroNumber } from "@/components/ui/hero-number";
+import { Loader2 } from "lucide-react";
+import { getMilestones } from "@/actions/milestone-escrow";
 
 interface Milestone {
   id: string;
@@ -12,62 +14,27 @@ interface Milestone {
   status: "LOCKED" | "PENDING" | "RELEASED";
 }
 
-const initialMockCards: Milestone[] = [
-  {
-    id: "ME-1",
-    project: "Sunrise Portal",
-    title: "Database Architecture & Replica Setup",
-    amount: 120000,
-    dueDate: "Jun 10, 2026",
-    status: "LOCKED",
-  },
-  {
-    id: "ME-2",
-    project: "Neon Labs",
-    title: "Biometric Login UX & Integration",
-    amount: 140000,
-    dueDate: "Jun 15, 2026",
-    status: "LOCKED",
-  },
-  {
-    id: "ME-3",
-    project: "Prism Media",
-    title: "Checkout Localization & Subscriptions",
-    amount: 100000,
-    dueDate: "Jun 20, 2026",
-    status: "LOCKED",
-  },
-  {
-    id: "ME-4",
-    project: "Aether Branding",
-    title: "Brand Strategy Deck & Vector Guidelines",
-    amount: 75000,
-    dueDate: "Jun 28, 2026",
-    status: "PENDING",
-  },
-  {
-    id: "ME-5",
-    project: "TechFlow API",
-    reason: "",
-    title: "API Auth Flow Security Verification",
-    amount: 50000,
-    dueDate: "Jul 05, 2026",
-    status: "PENDING",
-  } as any,
-  {
-    id: "ME-6",
-    project: "Sunrise Portal",
-    title: "Wireframes Signoff & Initial Design Prototype",
-    amount: 95000,
-    dueDate: "May 25, 2026",
-    status: "RELEASED",
-  },
-];
-
 export default function MilestoneEscrowPage() {
-  const [milestones, setMilestones] = useState<Milestone[]>(initialMockCards);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await getMilestones();
+        if (res.success && res.data) {
+          setMilestones(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to load milestones data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // Calculate counts for status bar
   const lockedCount = milestones.filter((m) => m.status === "LOCKED").length;
@@ -88,6 +55,14 @@ export default function MilestoneEscrowPage() {
 
   const formattedLockedTotal = `₹${lockedTotal.toLocaleString("en-IN")}`;
   const uniqueProjects = Array.from(new Set(milestones.map((m) => m.project)));
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

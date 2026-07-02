@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HeroNumber } from "@/components/ui/hero-number";
 import { KpiCard } from "@/components/ui/kpi-card";
-import { Percent, Layers, DollarSign } from "lucide-react";
+import { Percent, Layers, DollarSign, Loader2 } from "lucide-react";
+import { getRetros } from "@/actions/post-project";
 
 interface ProjectRetro {
   id: string;
@@ -14,64 +15,58 @@ interface ProjectRetro {
   notes: string;
 }
 
-const initialMockRows: ProjectRetro[] = [
-  {
-    id: "PR-1",
-    project: "Sunrise Portal",
-    quote: 200000,
-    actual: 240000,
-    recommendedRate: 2500,
-    notes: "ScopeShield successfully captured ₹40,000 in approved change orders.",
-  },
-  {
-    id: "PR-2",
-    project: "Neon Labs",
-    quote: 150000,
-    actual: 180000,
-    recommendedRate: 2200,
-    notes: "Client signed off on all milestones within 24 hours of notification.",
-  },
-  {
-    id: "PR-3",
-    project: "Prism Media",
-    quote: 120000,
-    actual: 95000,
-    recommendedRate: 2000,
-    notes: "Significant delay in asset delivery caused scope leak and schedule slippage.",
-  },
-  {
-    id: "PR-4",
-    project: "Aether Branding",
-    quote: 80000,
-    actual: 75000,
-    recommendedRate: 1800,
-    notes: "Underestimated logo revision cycles. Recommend setting capping rules.",
-  },
-  {
-    id: "PR-5",
-    project: "TechFlow API",
-    quote: 100050,
-    actual: 120000,
-    recommendedRate: 2800,
-    notes: "Fast integration via reuse of standard DB scaffold schemas.",
-  },
-];
-
 export default function PostProjectPage() {
-  const [retros] = useState<ProjectRetro[]>(initialMockRows);
+  const [retros, setRetros] = useState<ProjectRetro[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await getRetros();
+        if (res.success && res.data) {
+          setRetros(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to load retros data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Calculate dynamic metrics
+  const totalQuote = retros.reduce((sum, r) => sum + r.quote, 0);
+  const totalActual = retros.reduce((sum, r) => sum + r.actual, 0);
+  
+  const avgMarginPercent = totalQuote > 0 
+    ? Math.round(((totalActual - totalQuote) / totalQuote) * 100) 
+    : 0;
+
+  const avgRecommendedRate = retros.length > 0
+    ? Math.round(retros.reduce((sum, r) => sum + r.recommendedRate, 0) / retros.length)
+    : 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Top Hero Section */}
-      <HeroNumber value="28%" label="average profit margin" />
+      <HeroNumber value={`${avgMarginPercent}%`} label="average profit margin" />
 
       {/* Top Stat Row (3 KpiCards) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <KpiCard title="Avg Margin %" value="28%" icon={Percent} />
-        <KpiCard title="Best Project Type" value="Mobile Apps" icon={Layers} />
+        <KpiCard title="Avg Margin %" value={`${avgMarginPercent}%`} icon={Percent} />
+        <KpiCard title="Best Project Type" value="SaaS Integration" icon={Layers} />
         <KpiCard
           title="Recommended Rate"
-          value="₹2,400/hr"
+          value={`₹${avgRecommendedRate.toLocaleString("en-IN")}/hr`}
           icon={DollarSign}
         />
       </div>
@@ -92,47 +87,55 @@ export default function PostProjectPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
-              {retros.map((item) => {
-                const isProfit = item.actual >= item.quote;
-                return (
-                  <tr key={item.id} className="hover:bg-surface-elevated/40 transition-colors">
-                    <td className="p-3.5 font-medium text-text">{item.project}</td>
-                    <td className="p-3.5 text-right font-mono text-text">
-                      ₹{item.quote.toLocaleString("en-IN")}
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-text">
-                      ₹{item.actual.toLocaleString("en-IN")}
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                          isProfit
-                            ? "text-success bg-success/10 border border-success/15"
-                            : "text-danger bg-danger/10 border border-danger/15"
-                        }`}
-                      >
-                        {isProfit ? "✓ Profit" : "✗ Loss"}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-accent/10 text-accent border border-accent/15">
-                        ₹{item.recommendedRate}/hr
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-text-muted leading-relaxed">
-                      {item.notes}
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <button
-                        onClick={() => console.log(`Viewing report for project: ${item.project}`)}
-                        className="bg-transparent border border-border hover:bg-surface-elevated text-text text-[12px] px-3 py-1 rounded-sm cursor-pointer transition-colors font-medium"
-                      >
-                        View Report
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {retros.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-text-faint">
+                    No project retro entries found.
+                  </td>
+                </tr>
+              ) : (
+                retros.map((item) => {
+                  const isProfit = item.actual >= item.quote;
+                  return (
+                    <tr key={item.id} className="hover:bg-surface-elevated/40 transition-colors">
+                      <td className="p-3.5 font-medium text-text">{item.project}</td>
+                      <td className="p-3.5 text-right font-mono text-text">
+                        ₹{item.quote.toLocaleString("en-IN")}
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-text">
+                        ₹{item.actual.toLocaleString("en-IN")}
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                            isProfit
+                              ? "text-success bg-success/10 border border-success/15"
+                              : "text-danger bg-danger/10 border border-danger/15"
+                          }`}
+                        >
+                          {isProfit ? "✓ Profit" : "✗ Loss"}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-accent/10 text-accent border border-accent/15">
+                          ₹{item.recommendedRate}/hr
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-text-muted leading-relaxed">
+                        {item.notes}
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <button
+                          onClick={() => console.log(`Viewing report for project: ${item.project}`)}
+                          className="bg-transparent border border-border hover:bg-surface-elevated text-text text-[12px] px-3 py-1 rounded-sm cursor-pointer transition-colors font-medium"
+                        >
+                          View Report
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
