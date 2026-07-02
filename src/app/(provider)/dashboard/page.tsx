@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Activity,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -23,56 +24,56 @@ import {
 import { HeroNumber } from "@/components/ui/hero-number";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { getAIConfig } from "@/actions/ai-config";
-
-const revenueData = [
-  { month: "Jan", revenue: 42000 },
-  { month: "Feb", revenue: 58000 },
-  { month: "Mar", revenue: 51000 },
-  { month: "Apr", revenue: 67000 },
-  { month: "May", revenue: 73000 },
-  { month: "Jun", revenue: 89000 },
-];
-
-const projectHealthData = [
-  { name: "Healthy", value: 5, color: "var(--success)" },
-  { name: "Warning", value: 2, color: "var(--warning)" },
-  { name: "Critical", value: 1, color: "var(--danger)" },
-];
-
-const upcomingMilestones = [
-  { id: "1", project: "Sunrise Logistics Portal", amount: "₹45,000", dueDate: "Jun 10", statusColor: "var(--warning)" },
-  { id: "2", project: "Neon Labs Mobile App", amount: "₹35,000", dueDate: "Jun 15", statusColor: "var(--warning)" },
-  { id: "3", project: "Prism Media Website", amount: "₹24,500", dueDate: "Jun 22", statusColor: "var(--accent)" },
-  { id: "4", project: "Aether Branding System", amount: "₹60,000", dueDate: "Jun 28", statusColor: "var(--warning)" },
-  { id: "5", project: "TechFlow API Integration", amount: "₹20,000", dueDate: "Jul 05", statusColor: "var(--warning)" },
-];
-
-const recentActivity = [
-  { id: "1", action: "Milestone 3 approved by Sunrise Exports", time: "2h ago" },
-  { id: "2", action: "Scope change requested on Dashboard Redesign", time: "4h ago" },
-  { id: "3", action: "Payment of ₹35,000 released — Neon Labs", time: "1d ago" },
-  { id: "4", action: "Client delay logged: 3 days — Prism Media", time: "1d ago" },
-  { id: "5", action: "Post-project retrospective completed — TechFlow", time: "2d ago" },
-];
+import { getDashboardData } from "@/actions/dashboard";
 
 export default function DashboardPage() {
   const [aiActive, setAiActive] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
-    async function checkConfig() {
-      const res = await getAIConfig("mock-user");
-      if (res.success && res.data && res.data.apiKey) {
-        setAiActive(true);
+    setMounted(true);
+
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const [aiRes, dashRes] = await Promise.all([
+          getAIConfig("mock-user"),
+          getDashboardData()
+        ]);
+
+        if (aiRes.success && aiRes.data && aiRes.data.apiKey) {
+          setAiActive(true);
+        }
+
+        if (dashRes.success && dashRes.data) {
+          setDashboardData(dashRes.data);
+        }
+      } catch (err) {
+        console.error("Failed to load data", err);
+      } finally {
+        setIsLoading(false);
       }
     }
-    checkConfig();
+    loadData();
   }, []);
 
+  if (isLoading || !dashboardData) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+      </div>
+    );
+  }
+
+  const { revenueData, projectHealthData, upcomingMilestones, recentActivity, kpis } = dashboardData;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {/* Top: HeroNumber + AI pill */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-        <HeroNumber value="₹1,84,500" label="in unpaid milestones" />
+        <HeroNumber value={kpis.totalUnpaid} label="in unpaid milestones" />
         <Link href={aiActive ? "/settings" : "/settings?tab=ai"} className="self-start">
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold tracking-wide border cursor-pointer transition-all duration-200 hover:-translate-y-[1px] ${
@@ -88,10 +89,10 @@ export default function DashboardPage() {
 
       {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard title="Active Projects" value="8" trend={12} icon={Briefcase} />
-        <KpiCard title="Monthly Revenue" value="₹89,000" trend={8} icon={TrendingUp} />
-        <KpiCard title="At-Risk Projects" value="2" trend={-15} icon={AlertCircle} />
-        <KpiCard title="Avg Burn Rate" value="74%" trend={3} icon={Activity} />
+        <KpiCard title="Active Projects" value={kpis.activeProjects.toString()} trend={12} icon={Briefcase} />
+        <KpiCard title="Monthly Revenue" value={kpis.monthlyRevenue} trend={8} icon={TrendingUp} />
+        <KpiCard title="At-Risk Projects" value={kpis.atRisk.toString()} trend={-15} icon={AlertCircle} />
+        <KpiCard title="Avg Burn Rate" value={kpis.avgBurnRate} trend={3} icon={Activity} />
       </div>
 
       {/* Charts row */}
@@ -103,19 +104,21 @@ export default function DashboardPage() {
             <span className="text-xs text-text-muted">Last 6 months</span>
           </div>
           <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
-                <Tooltip
-                  contentStyle={{ background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}
-                  itemStyle={{ color: "var(--text)" }}
-                  labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
-                  formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, "Revenue"]}
-                />
-                <Line type="monotone" dataKey="revenue" stroke="var(--accent)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5, fill: "var(--accent)" }} />
-              </LineChart>
-            </ResponsiveContainer>
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={revenueData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
+                  <Tooltip
+                    contentStyle={{ background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}
+                    itemStyle={{ color: "var(--text)" }}
+                    labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
+                    formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, "Revenue"]}
+                  />
+                  <Line type="monotone" dataKey="revenue" stroke="var(--accent)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5, fill: "var(--accent)" }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -123,18 +126,20 @@ export default function DashboardPage() {
         <div className="bg-surface border border-border rounded-lg p-5">
           <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.08em] mb-6">Project Health</h3>
           <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={projectHealthData} layout="vertical" margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }} itemStyle={{ color: "var(--text)" }} labelStyle={{ color: "var(--text-muted)", fontSize: 11 }} />
-                <Bar dataKey="value" barSize={12} radius={[0, 4, 4, 0]}>
-                  {projectHealthData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={projectHealthData} layout="vertical" margin={{ top: 5, right: 15, left: -15, bottom: 5 }}>
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }} itemStyle={{ color: "var(--text)" }} labelStyle={{ color: "var(--text-muted)", fontSize: 11 }} />
+                  <Bar dataKey="value" barSize={12} radius={[0, 4, 4, 0]}>
+                    {projectHealthData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
@@ -150,7 +155,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-1">
-            {upcomingMilestones.map((m) => (
+            {upcomingMilestones.map((m: any) => (
               <div key={m.id} className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium text-text truncate">{m.project}</p>
@@ -169,7 +174,7 @@ export default function DashboardPage() {
         <div className="bg-surface border border-border rounded-lg p-5">
           <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.08em] mb-4">Recent Activity</h3>
           <div className="space-y-4">
-            {recentActivity.map((act) => (
+            {recentActivity.map((act: any) => (
               <div key={act.id} className="flex justify-between items-start gap-4">
                 <p className="text-[13px] text-text leading-relaxed">{act.action}</p>
                 <span className="text-[11px] text-text-faint font-medium whitespace-nowrap shrink-0">{act.time}</span>

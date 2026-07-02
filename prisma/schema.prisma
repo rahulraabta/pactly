@@ -16,3 +16,54 @@ model UserAIConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  company   String
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Project {
+  id          String      @id @default(cuid())
+  name        String
+  status      String      // e.g. "Active", "At-Risk", "Completed"
+  health      String      // e.g. "Healthy", "Warning", "Critical"
+  burnRate    Float       // e.g. 74.0
+  clientId    String
+  client      Client      @relation(fields: [clientId], references: [id])
+  milestones  Milestone[]
+  activities  Activity[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  title       String
+  amount      Float
+  dueDate     DateTime
+  status      String    // e.g. "Pending", "Approved", "Paid"
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Activity {
+  id          String    @id @default(cuid())
+  action      String
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+model RevenueEntry {
+  id          String    @id @default(cuid())
+  month       String    // e.g. "Jan", "Feb"
+  year        Int       // e.g. 2026
+  revenue     Float
+  createdAt   DateTime  @default(now())
+}
